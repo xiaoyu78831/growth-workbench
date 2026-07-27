@@ -253,6 +253,12 @@
     /* 首页计划小组件 */
     .home-plan-list { max-height: 230px; overflow-y: auto; margin-top: 6px; -webkit-overflow-scrolling: touch; }
     .home-plan-empty { font-size: 13px; color: var(--text-light); text-align: center; padding: 14px 0; }
+    .home-plan-add { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #F3F4F6; }
+    .home-plan-add .plan-add-input { flex: 1; min-width: 0; border: 1.5px solid #E5E7EB; border-radius: 10px; padding: 9px 12px; font-size: 14px; outline: none; background: #F9FAFB; }
+    .home-plan-add .plan-add-input:focus { border-color: var(--purple); background: #fff; }
+    .home-plan-add .plan-add-time { width: 78px; flex-shrink: 0; border: 1.5px solid #E5E7EB; border-radius: 10px; padding: 9px 6px; font-size: 13px; outline: none; background: #F9FAFB; color: var(--text-light); }
+    .home-plan-add .plan-add-btn { width: 44px; flex-shrink: 0; border: none; border-radius: 10px; background: linear-gradient(135deg, #A78BFA 0%, #2DD4BF 100%); color: #fff; font-size: 22px; font-weight: 600; cursor: pointer; transition: transform .15s; }
+    .home-plan-add .plan-add-btn:active { transform: scale(0.92); }
 
     /* 提醒横幅 */
     .remind-banner { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-130%); width: 100%; max-width: 430px; background: linear-gradient(135deg, #8B5CF6 0%, #2DD4BF 100%); color: #fff; padding: 16px 18px; z-index: 500; box-shadow: 0 6px 24px rgba(0,0,0,0.18); transition: transform 0.4s ease; display: flex; align-items: center; gap: 12px; }
@@ -342,6 +348,11 @@
             <div class="panel-more" onclick="openPlanModal()">管理全部 →</div>
           </div>
           <div class="home-plan-list" id="homePlanList"></div>
+          <div class="home-plan-add">
+            <input class="plan-add-input" id="homePlanInput" placeholder="添加今日计划…" onkeydown="if(event.key==='Enter')quickAddPlan()">
+            <input class="plan-add-time" id="homePlanTime" type="time">
+            <button class="plan-add-btn" onclick="quickAddPlan()">＋</button>
+          </div>
         </div>
       </div>
 
@@ -840,7 +851,7 @@
       const box = document.getElementById('homePlanList');
       if (!box) return;
       const items = appData.todos.slice().sort((a, b) => (a.done - b.done) || ((a.time || '') < (b.time || '') ? -1 : 1));
-      if (!items.length) { box.innerHTML = '<div class="home-plan-empty">今天还没有计划，点「管理全部」添加 →</div>'; return; }
+      if (!items.length) { box.innerHTML = '<div class="home-plan-empty">今天还没有计划，在下方输入框直接添加吧 👇</div>'; return; }
       box.innerHTML = items.map(t => `
         <div class="plan-item">
           <div class="plan-check ${t.done ? 'done' : ''}" onclick="togglePlan(${t.id})">${t.done ? '✓' : ''}</div>
@@ -871,6 +882,20 @@
     }
 
     function openPlanModal() { renderPlans(); showModal('planModal'); }
+
+    function quickAddPlan() {
+      const input = document.getElementById('homePlanInput');
+      const title = input.value.trim();
+      const time = document.getElementById('homePlanTime').value;
+      if (!title) { input.focus(); return; }
+      const id = Math.max(0, ...appData.todos.map(t => t.id)) + 1;
+      appData.todos.unshift({ id, text: title, time: time || '', done: false });
+      saveData(); renderHome();
+      input.value = '';
+      document.getElementById('homePlanTime').value = '';
+      input.focus();
+      showToast('已添加计划');
+    }
 
     function addPlan() {
       const title = document.getElementById('planInputTitle').value.trim();
