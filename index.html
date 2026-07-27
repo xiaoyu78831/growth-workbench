@@ -230,13 +230,15 @@
     .plan-add input[type="time"] { width: 88px; flex-shrink: 0; }
     .plan-list { max-height: 46vh; overflow-y: auto; }
     .plan-item { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #F3F4F6; }
-    .plan-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #D1D5DB; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; color: white; transition: all .2s; }
-    .plan-check.done { background: var(--purple); border-color: var(--purple); }
+    .plan-check { width: 24px; height: 24px; border-radius: 50%; border: 2.5px solid #D1D5DB; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: white; transition: all .2s; -webkit-tap-highlight-color: transparent; }
+    .plan-check:active { transform: scale(0.88); }
+    .plan-check.done { background: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%); border-color: transparent; box-shadow: 0 2px 6px rgba(124,58,237,0.28); }
     .plan-main { flex: 1; cursor: pointer; }
-    .plan-text { font-size: 14px; line-height: 1.4; }
-    .plan-text.done { text-decoration: line-through; color: var(--text-light); }
+    .plan-text { font-size: 15px; line-height: 1.4; transition: color .2s; }
+    .plan-text.done { text-decoration: line-through; color: #9CA3AF; }
     .plan-time { font-size: 11px; color: var(--text-light); margin-top: 3px; }
-    .plan-del { color: var(--text-light); font-size: 18px; padding: 0 6px; cursor: pointer; }
+    .plan-del { color: var(--text-light); font-size: 18px; padding: 0 6px; cursor: pointer; opacity: .8; transition: opacity .2s; }
+    .plan-del:active { opacity: .5; transform: scale(0.9); }
 
     /* 首页计划小组件 */
     .home-plan-list { max-height: 230px; overflow-y: auto; margin-top: 6px; -webkit-overflow-scrolling: touch; }
