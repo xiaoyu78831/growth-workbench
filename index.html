@@ -78,18 +78,6 @@
     .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .panel-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     .panel-more { font-size: 12px; color: var(--purple); cursor: pointer; }
-    .progress-overview { display: flex; align-items: center; gap: 16px; }
-    .progress-ring { width: 72px; height: 72px; flex-shrink: 0; position: relative; }
-    .progress-ring svg { transform: rotate(-90deg); }
-    .progress-ring-bg { fill: none; stroke: #F3F4F6; stroke-width: 8; }
-    .progress-ring-fill { fill: none; stroke: url(#ringGradient); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 201; stroke-dashoffset: 201; transition: stroke-dashoffset 0.8s ease; }
-    .progress-ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15px; font-weight: 700; }
-    .progress-info { flex: 1; }
-    .progress-info-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
-    .progress-info-item:last-child { margin-bottom: 0; }
-    .progress-info-label { color: var(--text-sub); }
-    .progress-info-value { font-weight: 600; }
-
     /* Module grid (home) */
     .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 20px; margin-bottom: 20px; }
     .module-item { background: var(--card); border-radius: var(--radius-sm); padding: 16px 8px; text-align: center; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s; }
@@ -299,10 +287,6 @@
   <div class="app">
     <svg width="0" height="0" style="position:absolute">
       <defs>
-        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" style="stop-color:#A78BFA" />
-          <stop offset="100%" style="stop-color:#2DD4BF" />
-        </linearGradient>
         <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" style="stop-color:#2DD4BF" />
           <stop offset="100%" style="stop-color:#A78BFA" />
@@ -352,29 +336,6 @@
             <input class="plan-add-input" id="homePlanInput" placeholder="添加今日计划…" onkeydown="if(event.key==='Enter')quickAddPlan()">
             <input class="plan-add-time" id="homePlanTime" type="time">
             <button class="plan-add-btn" onclick="quickAddPlan()">＋</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="panel-card">
-          <div class="panel-header">
-            <div class="panel-title"><span class="icon">📊</span>学习进度总览</div>
-            <div class="panel-more" onclick="showToast('查看全部学习进度')">查看全部 →</div>
-          </div>
-          <div class="progress-overview">
-            <div class="progress-ring">
-              <svg width="72" height="72" viewBox="0 0 72 72">
-                <circle class="progress-ring-bg" cx="36" cy="36" r="32"/>
-                <circle class="progress-ring-fill" id="learnRing" cx="36" cy="36" r="32"/>
-              </svg>
-              <div class="progress-ring-text" id="learnPercent">0%</div>
-            </div>
-            <div class="progress-info">
-              <div class="progress-info-item"><span class="progress-info-label">进行中的计划</span><span class="progress-info-value" id="learnActive">0</span></div>
-              <div class="progress-info-item"><span class="progress-info-label">已完成课时</span><span class="progress-info-value" id="learnDone">0</span></div>
-              <div class="progress-info-item"><span class="progress-info-label">累计学习天数</span><span class="progress-info-value" id="learnDays">0</span></div>
-            </div>
           </div>
         </div>
       </div>
@@ -695,12 +656,6 @@
       document.getElementById('todoText').textContent = '完成率 ' + pct + '%';
       document.getElementById('sportCount').textContent = appData.sport.minutes;
       document.getElementById('sportText').textContent = appData.sport.checked ? '已打卡 ✓' : '未打卡';
-      const lp = appData.learn.total ? Math.round(appData.learn.done / appData.learn.total * 100) : 0;
-      document.getElementById('learnPercent').textContent = lp + '%';
-      document.getElementById('learnRing').style.strokeDashoffset = 201 * (1 - lp / 100);
-      document.getElementById('learnActive').textContent = appData.learn.active;
-      document.getElementById('learnDone').textContent = appData.learn.done;
-      document.getElementById('learnDays').textContent = appData.learn.days;
     }
 
     function updateHeader() {
