@@ -256,6 +256,7 @@
     .link-hint { font-size: 12px; color: #0D9488; margin: -6px 0 12px; display: none; align-items: center; gap: 4px; }
     .btn-analyze { width: 100%; background: var(--teal-light); color: #0D9488; border: none; border-radius: 12px; padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; }
     .btn-analyze:active { transform: scale(.98); }
+    .mind-map-img { width: 100%; height: auto; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; display: block; }
     .analysis-box { background: #F9FAFB; border-radius: 12px; padding: 14px; margin-bottom: 6px; }
     .analysis-score { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .score-ring { width: 56px; height: 56px; position: relative; flex-shrink: 0; }
@@ -496,10 +497,10 @@
           <span class="lead-icon">🔗</span>
           <input type="text" class="modal-input with-icon" id="inspInputLink" placeholder="粘贴抖音分享链接，自动提取文案" oninput="onLinkInput()">
         </div>
-        <div class="link-hint" id="linkHint">✅ 已自动提取文案，可修改后点「分析爆款原因」</div>
+        <div class="link-hint" id="linkHint">✅ 已自动提取文案，可修改后点「生成思维导图」</div>
         <label class="modal-label">📋 抖音文案（提取后可改）</label>
         <textarea class="modal-textarea" id="inspInputCopy" placeholder="粘贴链接后自动填入；也可手动粘贴视频文案"></textarea>
-        <button class="btn-analyze" type="button" onclick="analyzeCurrent()">📊 分析爆款原因</button>
+        <button class="btn-analyze" type="button" onclick="analyzeCurrent()">🧠 生成思维导图</button>
         <div id="analysisPreview"></div>
         <label class="modal-label">标签分类</label>
         <div class="tag-select" id="inspTagSelect">
@@ -1116,7 +1117,7 @@
       if (m) {
         let link = m[0].replace(/[。，,）)\]、]+$/, '');
         let copy = s.slice(0, m.index).trim();
-        copy = copy.replace(/^[\d.]*\s*复制打开抖音[，,]?\s*(看看)?【[^】]*】的(作品|更多作品)?/, '');
+        copy = copy.replace(/^\d*\.?\d*\s*复制打开抖音[，,]?\s*(看看?)?【[^】]*】?(的(作品|更多作品)?)?/, '');
         copy = copy.replace(/^复制打开抖音[，,]?/, '').trim();
         if (!copy) {
           const after = s.slice(m.index + m[0].length).replace(/复制打开抖音.*/, '').trim();
@@ -1142,8 +1143,9 @@
     function analyzeCurrent() {
       const copy = document.getElementById('inspInputCopy').value.trim();
       if (!copy) { showToast('请先粘贴抖音链接或填写文案'); return; }
+      const title = document.getElementById('inspInputTitle').value.trim() || '爆款思维导图';
       currentAnalysis = analyzeViral(copy);
-      renderAnalysis('analysisPreview', currentAnalysis);
+      renderAnalysis('analysisPreview', currentAnalysis, title);
     }
 
     function analyzeViral(text) {
@@ -1193,7 +1195,68 @@
       return { score, dims, suggestions };
     }
 
-    function renderAnalysis(cid, a) {
+    function escapeSvgText(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+    }
+
+    function generateMindMapSVG(a, title) {
+      const size = 360;
+      const cx = size / 2, cy = size / 2;
+      const mainColor = a.score >= 80 ? '#22C55E' : (a.score >= 60 ? '#F59E0B' : '#EF4444');
+      const branchR = 118;
+      const innerR = 58;
+      const dimLen = a.dims.length || 1;
+
+      let svg = '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 ' + size + ' ' + size + '" style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif">';
+
+      // defs
+      svg += '<defs>';
+      svg += '<linearGradient id="mmBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EDE9FE"/><stop offset="1" stop-color="#DBEAFE"/></linearGradient>';
+      svg += '<filter id="mmShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.08"/></filter>';
+      svg += '</defs>';
+
+      // background
+      svg += '<rect width="' + size + '" height="' + size + '" rx="18" fill="#F8FAFC"/>';
+      svg += '<rect x="12" y="12" width="' + (size - 24) + '" height="' + (size - 24) + '" rx="14" fill="url(#mmBg)" opacity="0.45"/>';
+
+      // title
+      const displayTitle = (title || '未命名').slice(0, 16) + ((title || '').length > 16 ? '…' : '');
+      svg += '<text x="' + cx + '" y="32" text-anchor="middle" font-size="15" font-weight="700" fill="#1F2937">' + escapeSvgText(displayTitle) + '</text>';
+
+      // branches
+      a.dims.forEach((d, i) => {
+        const angle = (i / dimLen) * Math.PI * 2 - Math.PI / 2;
+        const x1 = cx + innerR * Math.cos(angle);
+        const y1 = cy + innerR * Math.sin(angle);
+        const x2 = cx + branchR * Math.cos(angle);
+        const y2 = cy + branchR * Math.sin(angle);
+        const color = d.ok ? '#22C55E' : '#F59E0B';
+        const isRight = x2 >= cx;
+        const tx = isRight ? x2 + 30 : x2 - 30;
+        const anchor = isRight ? 'start' : 'end';
+
+        // branch line
+        svg += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="' + color + '" stroke-width="2" opacity="0.35"/>';
+        // node circle
+        svg += '<circle cx="' + x2.toFixed(1) + '" cy="' + y2.toFixed(1) + '" r="24" fill="#FFFFFF" stroke="' + color + '" stroke-width="2" filter="url(#mmShadow)"/>';
+        svg += '<text x="' + x2.toFixed(1) + '" y="' + (y2 + 5).toFixed(1) + '" text-anchor="middle" font-size="16">' + (d.ok ? '✅' : '⚠️') + '</text>';
+        // labels
+        svg += '<text x="' + tx + '" y="' + (y2 - 8).toFixed(1) + '" text-anchor="' + anchor + '" font-size="12" font-weight="700" fill="#374151">' + escapeSvgText(d.name) + '</text>';
+        const detail = (d.detail || '').slice(0, 18) + ((d.detail || '').length > 18 ? '…' : '');
+        svg += '<text x="' + tx + '" y="' + (y2 + 9).toFixed(1) + '" text-anchor="' + anchor + '" font-size="10" fill="#6B7280">' + escapeSvgText(detail) + '</text>';
+      });
+
+      // center node
+      svg += '<circle cx="' + cx + '" cy="' + cy + '" r="56" fill="#FFFFFF" stroke="' + mainColor + '" stroke-width="3" filter="url(#mmShadow)"/>';
+      svg += '<circle cx="' + cx + '" cy="' + cy + '" r="48" fill="' + mainColor + '" opacity="0.1"/>';
+      svg += '<text x="' + cx + '" y="' + (cy - 4) + '" text-anchor="middle" font-size="11" fill="#6B7280">爆款潜力</text>';
+      svg += '<text x="' + cx + '" y="' + (cy + 24) + '" text-anchor="middle" font-size="28" font-weight="800" fill="' + mainColor + '">' + a.score + '</text>';
+
+      svg += '</svg>';
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    function renderAnalysis(cid, a, title) {
       const box = document.getElementById(cid);
       if (!box) return;
       if (!a) { box.innerHTML = ''; return; }
@@ -1202,9 +1265,7 @@
       let html = '<div class="analysis-box"><div class="analysis-score">';
       html += '<div class="score-ring"><svg width="56" height="56" viewBox="0 0 56 56"><circle class="score-circle-bg" cx="28" cy="28" r="26"/><circle class="score-circle-fill" cx="28" cy="28" r="26" style="stroke-dashoffset:' + off + '"/></svg><div class="score-num" style="color:' + color + '">' + a.score + '</div></div>';
       html += '<div><div class="score-label">爆款潜力评分</div><div class="score-sub">' + (a.score >= 80 ? '很有爆款相' : (a.score >= 60 ? '基础不错，可优化' : '偏普通分享，建议优化')) + '</div></div></div>';
-      a.dims.forEach(d => {
-        html += '<div class="dim-row"><span class="dim-icon">' + (d.ok ? '✅' : '⚠️') + '</span><span><span class="dim-name">' + d.name + '</span><span class="dim-detail">' + d.detail + '</span></span></div>';
-      });
+      html += '<img class="mind-map-img" src="' + generateMindMapSVG(a, title || '爆款思维导图') + '" alt="爆款思维导图">';
       html += '<div class="analysis-sug"><b>优化建议：</b><br>' + a.suggestions.map(s => '· ' + s).join('<br>') + '</div></div>';
       box.innerHTML = html;
     }
@@ -1220,10 +1281,10 @@
       if (i.link) html += '<a class="detail-link" href="' + escapeHtml(i.link) + '" target="_blank" rel="noopener">🔗 打开抖音链接</a>';
       if (i.copy) html += '<div class="modal-label">📋 抖音文案</div><div class="copy-block">' + escapeHtml(i.copy) + '</div>';
       html += '<div class="modal-label">💭 我的想法</div><div class="copy-block">' + escapeHtml(i.content || '（暂无）') + '</div>';
-      if (i.analysis) html += '<div class="modal-label">📊 爆款原因分析</div><div id="inspDetailAnalysis"></div>';
+      if (i.analysis) html += '<div class="modal-label">🧠 爆款思维导图</div><div id="inspDetailAnalysis"></div>';
       document.getElementById('inspDetailBody').innerHTML = html;
       document.getElementById('inspDetailTitle').textContent = i.title;
-      if (i.analysis) renderAnalysis('inspDetailAnalysis', i.analysis);
+      if (i.analysis) renderAnalysis('inspDetailAnalysis', i.analysis, i.title);
       showModal('inspDetailModal');
     }
 
