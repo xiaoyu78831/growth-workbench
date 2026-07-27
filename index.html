@@ -259,6 +259,13 @@
     .btn-copy { width: 100%; background: #E0F2FE; color: #0284C7; border: none; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 8px 0 10px; }
     .btn-copy:active { transform: scale(.98); }
     .btn-copy:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-row { display: flex; gap: 8px; margin: 8px 0 10px; }
+    .btn-row .btn-copy, .btn-row .btn-online { width: auto; flex: 1; margin: 0; }
+    .btn-online { background: #EDE9FE; color: #7C3AED; border: none; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-online:active { transform: scale(.98); }
+    .btn-online:disabled { opacity: 0.5; cursor: not-allowed; }
+    .menu-input { width: calc(100% - 36px); margin: 4px 18px 0; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; box-sizing: border-box; background: #fff; }
+    .menu-desc { font-size: 11px; color: var(--text-light); padding: 4px 18px 10px; line-height: 1.5; }
     .mind-map-img { width: 100%; height: auto; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; display: block; }
     .analysis-box { background: #F9FAFB; border-radius: 12px; padding: 14px; margin-bottom: 6px; }
     .analysis-score { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -461,6 +468,12 @@
           <div class="menu-item-left"><div class="menu-item-icon" style="background:var(--orange-light)">⚙️</div><div class="menu-item-title">通用设置</div></div>
           <label class="switch"><input type="checkbox" id="setGeneral" onchange="saveSettings()"><span class="slider"></span></label>
         </div>
+        <div class="menu-group-title">抖音在线提取（可选）</div>
+        <div class="menu-item">
+          <div class="menu-item-left"><div class="menu-item-icon" style="background:var(--purple-light)">🌐</div><div class="menu-item-title">后端地址</div></div>
+        </div>
+        <input type="text" class="menu-input" id="setBackend" placeholder="留空=离线模式；填 http://你的服务器:3000">
+        <div class="menu-desc">配置后端后，灵感页可点「🌐 在线抓取」自动爬视频文案。后端需在能访问抖音的网络运行（见 README）。</div>
       </div>
 
       <div class="menu-list">
@@ -503,7 +516,10 @@
         <div class="link-hint" id="linkHint">🔗 已识别，点击「生成文案」提取你粘贴的全部文字</div>
         <label class="modal-label">📋 抖音文案（提取后可改）</label>
         <textarea class="modal-textarea" id="inspInputCopy" placeholder="点「生成文案」从上方提取；或在此直接粘贴视频完整文案"></textarea>
-        <button class="btn-copy" type="button" onclick="generateCopyFromLink()">📝 生成文案</button>
+        <div class="btn-row">
+          <button class="btn-copy" type="button" onclick="generateCopyFromLink()">📝 生成文案</button>
+          <button class="btn-online" type="button" onclick="fetchDouyinOnline(this)">🌐 在线抓取</button>
+        </div>
         <button class="btn-analyze" type="button" onclick="analyzeCurrent()">🧠 生成思维导图</button>
         <div id="analysisPreview"></div>
         <label class="modal-label">标签分类</label>
@@ -677,7 +693,7 @@
           { id: 6, folder: '复盘档案', title: '7月第2周内容复盘', content: '选题偏窄，下周扩展「工具测评」方向。', createdAt: '2026-07-19' }
         ],
         stats: { streakDays: 8, totalStudyMinutes: 1240, reviewCount: 6 },
-        settings: { notify: true, general: false, nickname: '小雨' }
+        settings: { notify: true, general: false, nickname: '小雨', backend: '' }
       };
     }
 
@@ -700,6 +716,8 @@
       // settings
       document.getElementById('setNotify').checked = !!appData.settings.notify;
       document.getElementById('setGeneral').checked = !!appData.settings.general;
+      const be = document.getElementById('setBackend');
+      if (be) be.value = appData.settings.backend || '';
       updateHeader();
     }
 
@@ -1162,6 +1180,40 @@
       showToast('文案已提取');
     }
 
+    function fetchDouyinOnline(btn) {
+      const base = (appData.settings.backend || '').trim().replace(/\/+$/, '');
+      if (!base) { showToast('未配置后端地址，请在「我的→设置」填写'); return; }
+      const v = document.getElementById('inspInputLink').value.trim();
+      if (!v) { showToast('请先粘贴抖音链接'); return; }
+      const r = parseDouyin(v);
+      const target = (r && r.link) ? r.link : v;
+      if (!/^https?:\/\//.test(target)) { showToast('链接格式不正确'); return; }
+      if (btn) { btn.disabled = true; btn.textContent = '⏳ 抓取中…'; }
+      showToast('正在抓取视频文案…');
+      fetch(base + '/api/douyin?url=' + encodeURIComponent(target))
+        .then(res => res.json())
+        .then(d => {
+          if (btn) { btn.disabled = false; btn.textContent = '🌐 在线抓取'; }
+          if (d && d.ok && d.copy) {
+            // 去掉链接本身，避免重复
+            let copy = (d.copy || '').replace(/https?:\/\/\S+/g, '').trim() || d.copy;
+            document.getElementById('inspInputCopy').value = copy;
+            if (d.title && !document.getElementById('inspInputTitle').value.trim()) {
+              document.getElementById('inspInputTitle').value = String(d.title).slice(0, 24);
+            }
+            document.getElementById('linkHint').textContent = '✅ 已在线抓取到视频文案';
+            document.getElementById('linkHint').style.display = 'flex';
+            showToast('已抓取到文案' + (d.author ? '（' + d.author + '）' : ''));
+          } else {
+            showToast('抓取失败：' + (d && d.error ? d.error : '未知错误'));
+          }
+        })
+        .catch(err => {
+          if (btn) { btn.disabled = false; btn.textContent = '🌐 在线抓取'; }
+          showToast('抓取失败，请检查后端是否运行/可访问');
+        });
+    }
+
     function analyzeCurrent() {
       const copy = document.getElementById('inspInputCopy').value.trim();
       if (!copy) { showToast('请先粘贴抖音链接或填写文案'); return; }
@@ -1364,6 +1416,7 @@
     function saveSettings() {
       appData.settings.notify = document.getElementById('setNotify').checked;
       appData.settings.general = document.getElementById('setGeneral').checked;
+      appData.settings.backend = (document.getElementById('setBackend').value || '').trim();
       saveData();
       if (appData.settings.notify && 'Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission().catch(() => {});
