@@ -256,6 +256,9 @@
     .link-hint { font-size: 12px; color: #0D9488; margin: -6px 0 12px; display: none; align-items: center; gap: 4px; }
     .btn-analyze { width: 100%; background: var(--teal-light); color: #0D9488; border: none; border-radius: 12px; padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; }
     .btn-analyze:active { transform: scale(.98); }
+    .btn-copy { width: 100%; background: #E0F2FE; color: #0284C7; border: none; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 8px 0 10px; }
+    .btn-copy:active { transform: scale(.98); }
+    .btn-copy:disabled { opacity: 0.5; cursor: not-allowed; }
     .mind-map-img { width: 100%; height: auto; border-radius: 14px; background: #FFFFFF; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 12px; display: block; }
     .analysis-box { background: #F9FAFB; border-radius: 12px; padding: 14px; margin-bottom: 6px; }
     .analysis-score { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -495,11 +498,12 @@
         <label class="modal-label">🎵 抖音链接</label>
         <div class="input-wrap">
           <span class="lead-icon">🔗</span>
-          <input type="text" class="modal-input with-icon" id="inspInputLink" placeholder="粘贴抖音分享链接，自动提取文案" oninput="onLinkInput()">
+          <input type="text" class="modal-input with-icon" id="inspInputLink" placeholder="粘贴抖音分享链接，点击下方「生成文案」提取" oninput="onLinkInput()">
         </div>
-        <div class="link-hint" id="linkHint">✅ 已自动提取文案，可修改后点「生成思维导图」</div>
+        <div class="link-hint" id="linkHint">🔗 已识别抖音链接，点击「生成文案」提取视频文案</div>
         <label class="modal-label">📋 抖音文案（提取后可改）</label>
-        <textarea class="modal-textarea" id="inspInputCopy" placeholder="粘贴链接后自动填入；也可手动粘贴视频文案"></textarea>
+        <textarea class="modal-textarea" id="inspInputCopy" placeholder="可点击上方「生成文案」从链接提取；也可手动粘贴视频文案"></textarea>
+        <button class="btn-copy" type="button" onclick="generateCopyFromLink()">📝 生成文案</button>
         <button class="btn-analyze" type="button" onclick="analyzeCurrent()">🧠 生成思维导图</button>
         <div id="analysisPreview"></div>
         <label class="modal-label">标签分类</label>
@@ -791,6 +795,7 @@
       document.getElementById('inspInputLink').value = '';
       document.getElementById('inspInputCopy').value = '';
       document.getElementById('analysisPreview').innerHTML = '';
+      document.getElementById('linkHint').textContent = '🔗 已识别抖音链接，点击「生成文案」提取视频文案';
       document.getElementById('linkHint').style.display = 'none';
       document.querySelectorAll('#inspTagSelect .tag-opt').forEach(t => t.classList.remove('active'));
       showModal('inspModal');
@@ -1132,12 +1137,25 @@
       const v = document.getElementById('inspInputLink').value;
       const r = parseDouyin(v);
       if (r && r.link) {
-        document.getElementById('inspInputLink').value = r.link;
-        if (r.copy && !document.getElementById('inspInputCopy').value.trim()) {
-          document.getElementById('inspInputCopy').value = r.copy;
-        }
         document.getElementById('linkHint').style.display = 'flex';
+      } else {
+        document.getElementById('linkHint').style.display = 'none';
       }
+    }
+
+    function generateCopyFromLink() {
+      const v = document.getElementById('inspInputLink').value.trim();
+      if (!v) { showToast('请先粘贴抖音分享链接'); return; }
+      const r = parseDouyin(v);
+      if (!r || !r.link) { showToast('未能识别抖音链接'); return; }
+      if (!r.copy) { showToast('链接中未提取到文案，请手动粘贴'); return; }
+      document.getElementById('inspInputLink').value = r.link;
+      document.getElementById('inspInputCopy').value = r.copy;
+      if (!document.getElementById('inspInputTitle').value.trim()) {
+        document.getElementById('inspInputTitle').value = r.copy.slice(0, 24).replace(/[\n]/g, ' ');
+      }
+      document.getElementById('linkHint').textContent = '✅ 已提取视频文案，可修改后再点「生成思维导图」';
+      showToast('文案已提取');
     }
 
     function analyzeCurrent() {
