@@ -250,6 +250,19 @@
     .plan-time { font-size: 11px; color: var(--text-light); margin-top: 3px; }
     .plan-del { color: var(--text-light); font-size: 18px; padding: 0 6px; cursor: pointer; }
 
+    /* 首页计划小组件 */
+    .home-plan-list { max-height: 230px; overflow-y: auto; margin-top: 6px; -webkit-overflow-scrolling: touch; }
+    .home-plan-empty { font-size: 13px; color: var(--text-light); text-align: center; padding: 14px 0; }
+
+    /* 提醒横幅 */
+    .remind-banner { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-130%); width: 100%; max-width: 430px; background: linear-gradient(135deg, #8B5CF6 0%, #2DD4BF 100%); color: #fff; padding: 16px 18px; z-index: 500; box-shadow: 0 6px 24px rgba(0,0,0,0.18); transition: transform 0.4s ease; display: flex; align-items: center; gap: 12px; }
+    .remind-banner.show { transform: translateX(-50%) translateY(0); }
+    .remind-icon { font-size: 28px; flex-shrink: 0; }
+    .remind-text { flex: 1; min-width: 0; }
+    .remind-title { font-size: 14px; font-weight: 700; }
+    .remind-sub { font-size: 12px; opacity: 0.95; margin-top: 2px; line-height: 1.4; word-break: break-all; }
+    .remind-close { font-size: 18px; opacity: 0.8; cursor: pointer; flex-shrink: 0; }
+
     /* 抖音链接 / 文案 / 爆款分析 */
     .input-wrap { position: relative; }
     .input-wrap .lead-icon { position: absolute; left: 12px; top: 12px; font-size: 16px; }
@@ -318,6 +331,17 @@
             </div>
             <div class="stat-progress-text" id="sportText">未打卡</div>
           </div>
+        </div>
+      </div>
+
+      <!-- 首页今日计划小组件 -->
+      <div class="section">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><span class="icon">📝</span>今日计划</div>
+            <div class="panel-more" onclick="openPlanModal()">管理全部 →</div>
+          </div>
+          <div class="home-plan-list" id="homePlanList"></div>
         </div>
       </div>
 
@@ -577,6 +601,11 @@
 
     <input type="file" id="fileInput" accept=".json" onchange="handleFile(this)">
     <div class="toast" id="toast"></div>
+    <div class="remind-banner" id="remindBanner">
+      <div class="remind-icon">⏰</div>
+      <div class="remind-text"><div class="remind-title" id="remindTitle"></div><div class="remind-sub" id="remindSub"></div></div>
+      <div class="remind-close" onclick="document.getElementById('remindBanner').classList.remove('show')">✕</div>
+    </div>
   </div>
 
   <script>
@@ -646,6 +675,7 @@
 
     /* ---------- 首页 ---------- */
     function renderHome() {
+      renderHomePlans();
       const total = appData.todos.length;
       const done = appData.todos.filter(t => t.done).length;
       const pct = total ? Math.round(done / total * 100) : 0;
@@ -806,6 +836,21 @@
     }
 
     /* ---------- 每日计划 ---------- */
+    function renderHomePlans() {
+      const box = document.getElementById('homePlanList');
+      if (!box) return;
+      const items = appData.todos.slice().sort((a, b) => (a.done - b.done) || ((a.time || '') < (b.time || '') ? -1 : 1));
+      if (!items.length) { box.innerHTML = '<div class="home-plan-empty">今天还没有计划，点「管理全部」添加 →</div>'; return; }
+      box.innerHTML = items.map(t => `
+        <div class="plan-item">
+          <div class="plan-check ${t.done ? 'done' : ''}" onclick="togglePlan(${t.id})">${t.done ? '✓' : ''}</div>
+          <div class="plan-main" onclick="togglePlan(${t.id})">
+            <div class="plan-text ${t.done ? 'done' : ''}">${escapeHtml(t.text)}</div>
+            ${t.time ? '<div class="plan-time">🕒 ' + escapeHtml(t.time) + (t.done ? ' · 已完成' : '') + '</div>' : ''}
+          </div>
+        </div>`).join('');
+    }
+
     function renderPlans() {
       const list = document.getElementById('planList');
       if (!list) return;
@@ -849,6 +894,63 @@
       appData.todos = appData.todos.filter(x => x.id !== id);
       saveData(); renderPlans(); renderHome();
       showToast('已删除');
+    }
+
+    /* ---------- 时间提醒 + 提示音 ---------- */
+    let audioCtx = null;
+    function playChime() {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        audioCtx = audioCtx || new AC();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const t0 = audioCtx.currentTime;
+        [0, 0.28, 0.56].forEach((d, i) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = 'sine';
+          o.frequency.value = 880 + i * 120;
+          g.gain.setValueAtTime(0.0001, t0 + d);
+          g.gain.exponentialRampToValueAtTime(0.35, t0 + d + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.24);
+          o.connect(g); g.connect(audioCtx.destination);
+          o.start(t0 + d); o.stop(t0 + d + 0.26);
+        });
+      } catch (e) { console.warn('提示音播放失败', e); }
+    }
+
+    function showReminder(text) {
+      playChime();
+      const b = document.getElementById('remindBanner');
+      if (b) {
+        document.getElementById('remindTitle').textContent = '⏰ 计划时间到了';
+        document.getElementById('remindSub').textContent = '该做：' + text;
+        b.classList.add('show');
+        clearTimeout(b._t);
+        b._t = setTimeout(() => b.classList.remove('show'), 9000);
+      }
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try { new Notification('成长工作台提醒', { body: text }); } catch (e) {}
+      }
+      showToast('⏰ ' + text);
+    }
+
+    function checkReminders() {
+      if (!appData.settings.notify) return;
+      const now = new Date();
+      const hhmm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      const dateKey = now.toISOString().slice(0, 10);
+      if (!appData.notified) appData.notified = {};
+      appData.todos.forEach(t => {
+        if (t.time && !t.done && t.time === hhmm) {
+          const key = dateKey + '|' + t.time + '|' + t.id;
+          if (!appData.notified[key]) {
+            appData.notified[key] = true;
+            saveData();
+            showReminder(t.text);
+          }
+        }
+      });
     }
 
     /* ---------- 抖音文案提取 & 爆款分析 ---------- */
@@ -1025,6 +1127,9 @@
       appData.settings.notify = document.getElementById('setNotify').checked;
       appData.settings.general = document.getElementById('setGeneral').checked;
       saveData();
+      if (appData.settings.notify && 'Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
       showToast('设置已保存');
     }
 
@@ -1130,6 +1235,11 @@
     updateHeader();
     loadData();
     setInterval(updateHeader, 60000);
+    setInterval(checkReminders, 10000);
+    checkReminders();
+    if (appData.settings.notify && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
+    }
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
