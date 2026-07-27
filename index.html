@@ -236,6 +236,44 @@
     #fileInput { display: none; }
     .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(31,41,55,0.92); color: white; padding: 12px 22px; border-radius: 22px; font-size: 14px; z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.3s; max-width: 80%; text-align: center; }
     .toast.show { opacity: 1; }
+
+    /* 每日计划弹窗 */
+    .plan-add { display: flex; gap: 10px; margin-bottom: 14px; }
+    .plan-add input[type="time"] { width: 88px; flex-shrink: 0; }
+    .plan-list { max-height: 46vh; overflow-y: auto; }
+    .plan-item { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #F3F4F6; }
+    .plan-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #D1D5DB; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; color: white; transition: all .2s; }
+    .plan-check.done { background: var(--purple); border-color: var(--purple); }
+    .plan-main { flex: 1; cursor: pointer; }
+    .plan-text { font-size: 14px; line-height: 1.4; }
+    .plan-text.done { text-decoration: line-through; color: var(--text-light); }
+    .plan-time { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+    .plan-del { color: var(--text-light); font-size: 18px; padding: 0 6px; cursor: pointer; }
+
+    /* 抖音链接 / 文案 / 爆款分析 */
+    .input-wrap { position: relative; }
+    .input-wrap .lead-icon { position: absolute; left: 12px; top: 12px; font-size: 16px; }
+    .modal-input.with-icon { padding-left: 38px; }
+    .link-hint { font-size: 12px; color: #0D9488; margin: -6px 0 12px; display: none; align-items: center; gap: 4px; }
+    .btn-analyze { width: 100%; background: var(--teal-light); color: #0D9488; border: none; border-radius: 12px; padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 12px; }
+    .btn-analyze:active { transform: scale(.98); }
+    .analysis-box { background: #F9FAFB; border-radius: 12px; padding: 14px; margin-bottom: 6px; }
+    .analysis-score { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .score-ring { width: 56px; height: 56px; position: relative; flex-shrink: 0; }
+    .score-ring svg { transform: rotate(-90deg); }
+    .score-circle-bg { fill: none; stroke: #E5E7EB; stroke-width: 7; }
+    .score-circle-fill { fill: none; stroke: url(#scoreGrad); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 163; stroke-dashoffset: 163; transition: stroke-dashoffset .8s; }
+    .score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 16px; font-weight: 700; }
+    .score-label { font-size: 13px; font-weight: 600; }
+    .score-sub { font-size: 11px; color: var(--text-sub); }
+    .dim-row { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; margin-bottom: 8px; line-height: 1.5; }
+    .dim-icon { flex-shrink: 0; font-size: 14px; }
+    .dim-name { font-weight: 600; margin-right: 4px; }
+    .dim-detail { color: var(--text-sub); }
+    .analysis-sug { margin-top: 10px; padding-top: 10px; border-top: 1px solid #E5E7EB; font-size: 13px; color: var(--text-main); line-height: 1.7; }
+    .analysis-sug b { color: #7C3AED; }
+    .copy-block { background: #F9FAFB; border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; margin-bottom: 14px; word-break: break-all; }
+    .detail-link { display: inline-block; background: var(--purple-light); color: #7C3AED; font-size: 12px; padding: 6px 12px; border-radius: 10px; text-decoration: none; margin-bottom: 12px; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -245,6 +283,10 @@
         <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" style="stop-color:#A78BFA" />
           <stop offset="100%" style="stop-color:#2DD4BF" />
+        </linearGradient>
+        <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#2DD4BF" />
+          <stop offset="100%" style="stop-color:#A78BFA" />
         </linearGradient>
       </defs>
     </svg>
@@ -259,7 +301,7 @@
 
       <div class="section">
         <div class="card-row">
-          <div class="stat-card purple">
+          <div class="stat-card purple" style="cursor:pointer" onclick="openPlanModal()">
             <div>
               <div class="stat-number" id="todoCount">0</div>
               <div class="stat-label">今日计划</div>
@@ -304,7 +346,7 @@
 
       <div class="section-title"><span>⚡</span>核心模块</div>
       <div class="module-grid">
-        <div class="module-item" onclick="switchTab('home');showToast('每日计划')"><div class="module-icon purple">📝</div><div class="module-name">每日计划</div></div>
+        <div class="module-item" onclick="openPlanModal()"><div class="module-icon purple">📝</div><div class="module-name">每日计划</div></div>
         <div class="module-item" onclick="showToast('学习空间')"><div class="module-icon teal">📚</div><div class="module-name">学习空间</div></div>
         <div class="module-item" onclick="showToast('运动打卡')"><div class="module-icon green">💪</div><div class="module-name">运动打卡</div></div>
         <div class="module-item" onclick="showToast('灵感小本')"><div class="module-icon yellow">💡</div><div class="module-name">灵感小本</div></div>
@@ -446,6 +488,16 @@
         <input type="text" class="modal-input" id="inspInputTitle" placeholder="一句话记录灵感…">
         <label class="modal-label">内容</label>
         <textarea class="modal-textarea" id="inspInputContent" placeholder="展开你的想法…"></textarea>
+        <label class="modal-label">🎵 抖音链接</label>
+        <div class="input-wrap">
+          <span class="lead-icon">🔗</span>
+          <input type="text" class="modal-input with-icon" id="inspInputLink" placeholder="粘贴抖音分享链接，自动提取文案" oninput="onLinkInput()">
+        </div>
+        <div class="link-hint" id="linkHint">✅ 已自动提取文案，可修改后点「分析爆款原因」</div>
+        <label class="modal-label">📋 抖音文案（提取后可改）</label>
+        <textarea class="modal-textarea" id="inspInputCopy" placeholder="粘贴链接后自动填入；也可手动粘贴视频文案"></textarea>
+        <button class="btn-analyze" type="button" onclick="analyzeCurrent()">📊 分析爆款原因</button>
+        <div id="analysisPreview"></div>
         <label class="modal-label">标签分类</label>
         <div class="tag-select" id="inspTagSelect">
           <div class="tag-opt" data-tag="选题灵感" onclick="selectTag('选题灵感', this)">选题灵感</div>
@@ -456,6 +508,31 @@
         <div class="modal-actions">
           <button class="btn btn-ghost" onclick="closeModal('inspModal')">取消</button>
           <button class="btn btn-primary" onclick="saveInspiration()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: 每日计划 -->
+    <div class="modal-overlay" id="planModal">
+      <div class="modal">
+        <div class="modal-title">每日计划</div>
+        <div class="plan-add">
+          <input type="text" class="modal-input" id="planInputTitle" placeholder="今天要做什么？">
+          <input type="time" class="modal-input" id="planInputTime">
+        </div>
+        <button class="btn btn-primary" type="button" onclick="addPlan()" style="width:100%;margin-bottom:14px">＋ 添加计划</button>
+        <div class="plan-list" id="planList"></div>
+      </div>
+    </div>
+
+    <!-- Modal: 灵感详情 -->
+    <div class="modal-overlay" id="inspDetailModal">
+      <div class="modal">
+        <div class="modal-title" id="inspDetailTitle">灵感详情</div>
+        <div id="inspDetailBody"></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal('inspDetailModal')">关闭</button>
+          <button class="btn btn-primary" onclick="editFromDetail()">编辑</button>
         </div>
       </div>
     </div>
@@ -513,6 +590,8 @@
     let currentFolder = '学习笔记';
     let showingArchived = false;
     let pendingImport = null;
+    let currentAnalysis = null;
+    let detailInspId = null;
 
     function defaultData() {
       return {
@@ -617,7 +696,7 @@
         return;
       }
       list.innerHTML = items.map(i => `
-        <div class="insp-card" onclick="editInspiration(${i.id})">
+        <div class="insp-card" onclick="openInspDetail(${i.id})">
           <div class="insp-top">
             ${i.pinned ? '<span class="insp-pin">📌</span>' : ''}
             <div class="insp-title">${escapeHtml(i.title)}</div>
@@ -655,9 +734,14 @@
     function openInspModal() {
       editingInspId = null;
       selectedTag = '';
+      currentAnalysis = null;
       document.getElementById('inspModalTitle').textContent = '新增灵感';
       document.getElementById('inspInputTitle').value = '';
       document.getElementById('inspInputContent').value = '';
+      document.getElementById('inspInputLink').value = '';
+      document.getElementById('inspInputCopy').value = '';
+      document.getElementById('analysisPreview').innerHTML = '';
+      document.getElementById('linkHint').style.display = 'none';
       document.querySelectorAll('#inspTagSelect .tag-opt').forEach(t => t.classList.remove('active'));
       showModal('inspModal');
     }
@@ -667,9 +751,14 @@
       if (!i) return;
       editingInspId = id;
       selectedTag = i.tag;
+      currentAnalysis = i.analysis || null;
       document.getElementById('inspModalTitle').textContent = '编辑灵感';
       document.getElementById('inspInputTitle').value = i.title;
-      document.getElementById('inspInputContent').value = i.content;
+      document.getElementById('inspInputContent').value = i.content || '';
+      document.getElementById('inspInputLink').value = i.link || '';
+      document.getElementById('inspInputCopy').value = i.copy || '';
+      document.getElementById('linkHint').style.display = i.link ? 'flex' : 'none';
+      renderAnalysis('analysisPreview', i.analysis || null);
       document.querySelectorAll('#inspTagSelect .tag-opt').forEach(t => t.classList.toggle('active', t.dataset.tag === i.tag));
       showModal('inspModal');
     }
@@ -683,15 +772,18 @@
     function saveInspiration() {
       const title = document.getElementById('inspInputTitle').value.trim();
       const content = document.getElementById('inspInputContent').value.trim();
+      const link = document.getElementById('inspInputLink').value.trim();
+      const copy = document.getElementById('inspInputCopy').value.trim();
       if (!title) { showToast('请填写标题'); return; }
       if (!selectedTag) { showToast('请选择标签分类'); return; }
+      const analysis = copy ? analyzeViral(copy) : null;
       const today = new Date().toISOString().slice(0, 10);
       if (editingInspId) {
         const i = appData.inspiration.find(x => x.id === editingInspId);
-        Object.assign(i, { title, content, tag: selectedTag });
+        Object.assign(i, { title, content, tag: selectedTag, link, copy, analysis });
       } else {
         const id = Math.max(0, ...appData.inspiration.map(x => x.id)) + 1;
-        appData.inspiration.unshift({ id, title, content, tag: selectedTag, pinned: false, archived: false, createdAt: today, linked: false });
+        appData.inspiration.unshift({ id, title, content, tag: selectedTag, pinned: false, archived: false, createdAt: today, linked: false, link, copy, analysis });
       }
       saveData(); renderInspiration(); renderMe();
       closeModal('inspModal');
@@ -711,6 +803,176 @@
       const i = appData.inspiration.find(x => x.id === id);
       i.archived = !i.archived; saveData(); renderInspiration();
       showToast(i.archived ? '已归档' : '已恢复到列表');
+    }
+
+    /* ---------- 每日计划 ---------- */
+    function renderPlans() {
+      const list = document.getElementById('planList');
+      if (!list) return;
+      const items = appData.todos.slice().sort((a, b) => (a.done - b.done));
+      if (!items.length) {
+        list.innerHTML = '<div class="empty-state"><span class="icon">📝</span>还没有计划，添加今天的第一个目标吧</div>';
+        return;
+      }
+      list.innerHTML = items.map(t => `
+        <div class="plan-item">
+          <div class="plan-check ${t.done ? 'done' : ''}" onclick="togglePlan(${t.id})">${t.done ? '✓' : ''}</div>
+          <div class="plan-main" onclick="togglePlan(${t.id})">
+            <div class="plan-text ${t.done ? 'done' : ''}">${escapeHtml(t.text)}</div>
+            ${t.time ? '<div class="plan-time">🕒 ' + escapeHtml(t.time) + '</div>' : ''}
+          </div>
+          <div class="plan-del" onclick="deletePlan(${t.id})">🗑️</div>
+        </div>`).join('');
+    }
+
+    function openPlanModal() { renderPlans(); showModal('planModal'); }
+
+    function addPlan() {
+      const title = document.getElementById('planInputTitle').value.trim();
+      const time = document.getElementById('planInputTime').value;
+      if (!title) { showToast('请输入计划内容'); return; }
+      const id = Math.max(0, ...appData.todos.map(t => t.id)) + 1;
+      appData.todos.unshift({ id, text: title, time: time || '', done: false });
+      saveData(); renderPlans(); renderHome();
+      document.getElementById('planInputTitle').value = '';
+      document.getElementById('planInputTime').value = '';
+      showToast('已添加计划');
+    }
+
+    function togglePlan(id) {
+      const t = appData.todos.find(x => x.id === id);
+      if (!t) return;
+      t.done = !t.done; saveData(); renderPlans(); renderHome();
+    }
+
+    function deletePlan(id) {
+      appData.todos = appData.todos.filter(x => x.id !== id);
+      saveData(); renderPlans(); renderHome();
+      showToast('已删除');
+    }
+
+    /* ---------- 抖音文案提取 & 爆款分析 ---------- */
+    function parseDouyin(text) {
+      if (!text || !text.trim()) return null;
+      const s = text.trim();
+      const m = s.match(/https?:\/\/[^\s]+/);
+      if (m) {
+        let link = m[0].replace(/[。，,）)\]、]+$/, '');
+        let copy = s.slice(0, m.index).trim();
+        copy = copy.replace(/^[\d.]*\s*复制打开抖音[，,]?\s*(看看)?【[^】]*】的(作品|更多作品)?/, '');
+        copy = copy.replace(/^复制打开抖音[，,]?/, '').trim();
+        if (!copy) {
+          const after = s.slice(m.index + m[0].length).replace(/复制打开抖音.*/, '').trim();
+          copy = after || '';
+        }
+        return { link, copy };
+      }
+      return { link: '', copy: s };
+    }
+
+    function onLinkInput() {
+      const v = document.getElementById('inspInputLink').value;
+      const r = parseDouyin(v);
+      if (r && r.link) {
+        document.getElementById('inspInputLink').value = r.link;
+        if (r.copy && !document.getElementById('inspInputCopy').value.trim()) {
+          document.getElementById('inspInputCopy').value = r.copy;
+        }
+        document.getElementById('linkHint').style.display = 'flex';
+      }
+    }
+
+    function analyzeCurrent() {
+      const copy = document.getElementById('inspInputCopy').value.trim();
+      if (!copy) { showToast('请先粘贴抖音链接或填写文案'); return; }
+      currentAnalysis = analyzeViral(copy);
+      renderAnalysis('analysisPreview', currentAnalysis);
+    }
+
+    function analyzeViral(text) {
+      const t = text.trim();
+      const hookWords = ['为什么', '如何', '怎么', '怎样', '竟然', '居然', '不敢相信', '揭秘', '你一定', '我敢打赌', '千万别', '一定要', '90%', '80%', '3个', '5个', '第一次', '原来', '其实', '别再', '劝你', '看完', '偷偷', '万万没想到'];
+      const first20 = t.slice(0, 20);
+      const hasHook = hookWords.some(w => first20.includes(w));
+      const emo = ['震惊', '泪目', '破防', '治愈', '上头', '绝了', '太香', '封神', '爱了', '救命', '绝绝子', '泪崩', '暖', '爽', '后悔', '劝退', '安利', '入坑', '心动', '尴尬', '社死', '好家伙', '真香', '离谱', '逆天', '上分', '蚌埠', '麻了'];
+      const emoCount = emo.filter(w => t.includes(w)).length;
+      const cta = ['点赞', '双击', '关注', '评论', '转发', '收藏', '左下角', '@', '艾特', '私信', '主页'];
+      const ctaCount = cta.filter(w => t.includes(w)).length;
+      const tags = (t.match(/#([^#\s]+)/g) || []).length;
+      const hasNum = /\d/.test(t) || /[一二三四五六七八九十百千万]/.test(t);
+      const person = ['我', '我们', '你', '你们', '姐妹', '兄弟', '宝子', '宝', '家人们', '朋友'];
+      const hasPerson = person.some(w => t.includes(w));
+      const suspense = t.includes('？') || t.includes('?') || ['吗', '呢', '猜', '谁'].some(w => t.includes(w));
+      const len = t.length;
+
+      const dims = [
+        { name: '开头钩子', ok: hasHook, detail: hasHook ? '前几句有反常识/悬念/数字式引导，能留住划走的手指' : '前几句缺少强钩子，容易被滑过；建议用「为什么/竟然/90%的人」式开场' },
+        { name: '情绪价值', ok: emoCount > 0, detail: emoCount > 0 ? ('含 ' + emoCount + ' 处情绪词，易引发共鸣与转发') : '缺少情绪词，难触发共鸣；可加「破防/治愈/绝了」等' },
+        { name: '互动引导', ok: ctaCount > 0, detail: ctaCount > 0 ? ('有 ' + ctaCount + ' 处互动引导，利于提升数据') : '缺少点赞/关注/评论等引导，易流失互动' },
+        { name: '话题标签', ok: tags > 0, detail: tags > 0 ? ('含 ' + tags + ' 个 #话题，利于分发') : '没有 #话题标签，建议加 1-3 个相关话题' },
+        { name: '具体/数字感', ok: hasNum, detail: hasNum ? '有具体数字/信息点，增强可信度' : '偏抽象，加入数字或具体场景会更好' },
+        { name: '人设/口语', ok: hasPerson, detail: hasPerson ? '用了第一/二人称，拉近与观众距离' : '偏书面，加入「我/你/宝子」更像真人分享' },
+        { name: '悬念留白', ok: suspense, detail: suspense ? '有疑问/悬念，能拉完播' : '结尾可直接抛个问题或悬念，提升完播率' },
+        { name: '文案长度', ok: len >= 15 && len <= 120, detail: len < 15 ? '偏短，信息量不足' : (len > 120 ? '偏长，前 2 行最关键，注意浓缩' : '长度适中') }
+      ];
+
+      let score = 0;
+      if (hasHook) score += 18;
+      score += Math.min(emoCount, 3) * 6;
+      if (ctaCount > 0) score += 12;
+      if (tags > 0) score += 10;
+      if (hasNum) score += 8;
+      if (hasPerson) score += 8;
+      if (suspense) score += 8;
+      if (len >= 15 && len <= 120) score += 10; else if (len > 120) score += 4;
+      score = Math.min(100, score);
+
+      const suggestions = [];
+      if (score >= 80) suggestions.push('整体很能打，保持这个结构，可批量复用。');
+      else if (score >= 60) suggestions.push('基础不错，补齐下方短板可冲爆款。');
+      else suggestions.push('当前更像普通分享，按下面几点改造更容易出圈。');
+      dims.filter(d => !d.ok).forEach(d => suggestions.push(d.detail));
+
+      return { score, dims, suggestions };
+    }
+
+    function renderAnalysis(cid, a) {
+      const box = document.getElementById(cid);
+      if (!box) return;
+      if (!a) { box.innerHTML = ''; return; }
+      const color = a.score >= 80 ? '#16A34A' : (a.score >= 60 ? '#CA8A04' : '#DC2626');
+      const off = 163 * (1 - a.score / 100);
+      let html = '<div class="analysis-box"><div class="analysis-score">';
+      html += '<div class="score-ring"><svg width="56" height="56" viewBox="0 0 56 56"><circle class="score-circle-bg" cx="28" cy="28" r="26"/><circle class="score-circle-fill" cx="28" cy="28" r="26" style="stroke-dashoffset:' + off + '"/></svg><div class="score-num" style="color:' + color + '">' + a.score + '</div></div>';
+      html += '<div><div class="score-label">爆款潜力评分</div><div class="score-sub">' + (a.score >= 80 ? '很有爆款相' : (a.score >= 60 ? '基础不错，可优化' : '偏普通分享，建议优化')) + '</div></div></div>';
+      a.dims.forEach(d => {
+        html += '<div class="dim-row"><span class="dim-icon">' + (d.ok ? '✅' : '⚠️') + '</span><span><span class="dim-name">' + d.name + '</span><span class="dim-detail">' + d.detail + '</span></span></div>';
+      });
+      html += '<div class="analysis-sug"><b>优化建议：</b><br>' + a.suggestions.map(s => '· ' + s).join('<br>') + '</div></div>';
+      box.innerHTML = html;
+    }
+
+    /* ---------- 灵感详情 ---------- */
+    function openInspDetail(id) {
+      const i = appData.inspiration.find(x => x.id === id);
+      if (!i) return;
+      detailInspId = id;
+      let html = '<div class="insp-top" style="margin-bottom:10px">' +
+        '<span class="insp-tag tag-' + i.tag + '">' + i.tag + '</span>' +
+        (i.pinned ? '<span class="insp-pin">📌 置顶</span>' : '') + '</div>';
+      if (i.link) html += '<a class="detail-link" href="' + escapeHtml(i.link) + '" target="_blank" rel="noopener">🔗 打开抖音链接</a>';
+      if (i.copy) html += '<div class="modal-label">📋 抖音文案</div><div class="copy-block">' + escapeHtml(i.copy) + '</div>';
+      html += '<div class="modal-label">💭 我的想法</div><div class="copy-block">' + escapeHtml(i.content || '（暂无）') + '</div>';
+      if (i.analysis) html += '<div class="modal-label">📊 爆款原因分析</div><div id="inspDetailAnalysis"></div>';
+      document.getElementById('inspDetailBody').innerHTML = html;
+      document.getElementById('inspDetailTitle').textContent = i.title;
+      if (i.analysis) renderAnalysis('inspDetailAnalysis', i.analysis);
+      showModal('inspDetailModal');
+    }
+
+    function editFromDetail() {
+      closeModal('inspDetailModal');
+      if (detailInspId) editInspiration(detailInspId);
     }
 
     /* ---------- 资料 ---------- */
