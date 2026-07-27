@@ -495,14 +495,14 @@
         <input type="text" class="modal-input" id="inspInputTitle" placeholder="一句话记录灵感…">
         <label class="modal-label">内容</label>
         <textarea class="modal-textarea" id="inspInputContent" placeholder="展开你的想法…"></textarea>
-        <label class="modal-label">🎵 抖音链接</label>
+        <label class="modal-label">🎵 抖音文案 / 链接</label>
         <div class="input-wrap">
           <span class="lead-icon">🔗</span>
-          <input type="text" class="modal-input with-icon" id="inspInputLink" placeholder="粘贴抖音分享链接，点击下方「生成文案」提取" oninput="onLinkInput()">
+          <input type="text" class="modal-input with-icon" id="inspInputLink" placeholder="粘贴抖音【完整文案】（标题+描述+话题，可含链接），点「生成文案」提取全部" oninput="onLinkInput()">
         </div>
-        <div class="link-hint" id="linkHint">🔗 已识别抖音链接，点击「生成文案」提取视频文案</div>
+        <div class="link-hint" id="linkHint">🔗 已识别，点击「生成文案」提取你粘贴的全部文字</div>
         <label class="modal-label">📋 抖音文案（提取后可改）</label>
-        <textarea class="modal-textarea" id="inspInputCopy" placeholder="可点击上方「生成文案」从链接提取；也可手动粘贴视频文案"></textarea>
+        <textarea class="modal-textarea" id="inspInputCopy" placeholder="点「生成文案」从上方提取；或在此直接粘贴视频完整文案"></textarea>
         <button class="btn-copy" type="button" onclick="generateCopyFromLink()">📝 生成文案</button>
         <button class="btn-analyze" type="button" onclick="analyzeCurrent()">🧠 生成思维导图</button>
         <div id="analysisPreview"></div>
@@ -795,7 +795,7 @@
       document.getElementById('inspInputLink').value = '';
       document.getElementById('inspInputCopy').value = '';
       document.getElementById('analysisPreview').innerHTML = '';
-      document.getElementById('linkHint').textContent = '🔗 已识别抖音链接，点击「生成文案」提取视频文案';
+      document.getElementById('linkHint').textContent = '🔗 已识别，点击「生成文案」提取你粘贴的全部文字';
       document.getElementById('linkHint').style.display = 'none';
       document.querySelectorAll('#inspTagSelect .tag-opt').forEach(t => t.classList.remove('active'));
       showModal('inspModal');
@@ -1121,13 +1121,17 @@
       const m = s.match(/https?:\/\/[^\s]+/);
       if (m) {
         let link = m[0].replace(/[。，,）)\]、]+$/, '');
-        let copy = s.slice(0, m.index).trim();
-        copy = copy.replace(/^\d*\.?\d*\s*复制打开抖音[，,]?\s*(看看?)?【[^】]*】?(的(作品|更多作品)?)?/, '');
-        copy = copy.replace(/^复制打开抖音[，,]?/, '').trim();
-        if (!copy) {
-          const after = s.slice(m.index + m[0].length).replace(/复制打开抖音.*/, '').trim();
-          copy = after || '';
-        }
+        // 收集链接【前后】的全部文字，避免丢后半段文案
+        const before = s.slice(0, m.index).trim();
+        const after = s.slice(m.index + m[0].length).trim();
+        let copy = (before + '\n' + after).trim();
+        // 去掉抖音分享前缀：数字 +「复制打开抖音，看看【账号名】的作品」
+        copy = copy.replace(/^\d*\.?\d*\s*复制打开抖音[，,]?\s*(看看?)?【[^】]*】?(的(作品|更多作品)?)?\s*/, '');
+        copy = copy.replace(/^复制打开抖音[，,]?\s*/, '');
+        // 去掉尾部「复制打开抖音，打开【抖音】看更多…」等引导语
+        copy = copy.replace(/复制打开抖音[\s\S]*$/g, '').trim();
+        // 规整空白：多余空行/空格压缩
+        copy = copy.replace(/[ \t]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
         return { link, copy };
       }
       return { link: '', copy: s };
