@@ -273,6 +273,36 @@
     .analysis-sug b { color: #7C3AED; }
     .copy-block { background: #F9FAFB; border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; margin-bottom: 14px; word-break: break-all; }
     .detail-link { display: inline-block; background: var(--purple-light); color: #7C3AED; font-size: 12px; padding: 6px 12px; border-radius: 10px; text-decoration: none; margin-bottom: 12px; word-break: break-all; }
+
+    /* 运动打卡 */
+    .sport-summary { display: flex; align-items: center; justify-content: space-between; background: var(--green-light); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; }
+    .sport-summary-left { font-size: 14px; font-weight: 600; color: #15803D; }
+    .sport-summary-right { font-size: 13px; font-weight: 600; color: #15803D; }
+    .sport-list { max-height: 46vh; overflow-y: auto; }
+    .sport-item { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #F3F4F6; }
+    .sport-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--green-light); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .sport-main { flex: 1; min-width: 0; cursor: pointer; }
+    .sport-name { font-size: 15px; font-weight: 500; line-height: 1.4; }
+    .sport-name.done { text-decoration: line-through; color: #9CA3AF; }
+    .sport-window { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+    .sport-window.in { color: #15803D; font-weight: 600; }
+    .sport-min { flex-shrink: 0; text-align: center; }
+    .sport-min input { width: 50px; border: 1px solid #E5E7EB; border-radius: 8px; padding: 5px 2px; font-size: 12px; text-align: center; outline: none; color: var(--text-sub); }
+    .sport-min-label { font-size: 10px; color: var(--text-light); margin-top: 2px; }
+    .sport-check { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid #86EFAC; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; color: white; transition: all .2s; -webkit-tap-highlight-color: transparent; }
+    .sport-check:active { transform: scale(0.88); }
+    .sport-check.done { background: linear-gradient(135deg, #34D399 0%, #059669 100%); border-color: transparent; box-shadow: 0 2px 6px rgba(5,150,105,0.28); }
+    .sport-del { color: var(--text-light); font-size: 18px; padding: 0 4px; cursor: pointer; opacity: .8; flex-shrink: 0; transition: opacity .2s; }
+    .sport-del:active { opacity: .5; transform: scale(0.9); }
+
+    /* 图标选择网格 */
+    .icon-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 16px; }
+    .icon-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 22px; background: #F3F4F6; border-radius: 12px; cursor: pointer; border: 2px solid transparent; transition: all .15s; }
+    .icon-cell:active { transform: scale(0.92); }
+    .icon-cell.active { background: var(--green-light); border-color: #34D399; }
+    .sport-form-row { display: flex; gap: 12px; margin-bottom: 14px; }
+    .sport-form-row > div { flex: 1; }
+    .sport-form-row input[type="time"] { width: 100%; }
   </style>
 </head>
 <body>
@@ -306,7 +336,7 @@
               <div class="stat-progress-text" id="todoText">完成率 0%</div>
             </div>
           </div>
-          <div class="stat-card teal">
+          <div class="stat-card teal" style="cursor:pointer" onclick="openSportModal()">
             <div>
               <div class="stat-number" id="sportCount">0</div>
               <div class="stat-label">今日运动(分钟)</div>
@@ -321,7 +351,7 @@
       <div class="module-grid">
         <div class="module-item" onclick="openPlanModal()"><div class="module-icon purple">📝</div><div class="module-name">每日计划</div></div>
         <div class="module-item" onclick="showToast('学习空间')"><div class="module-icon teal">📚</div><div class="module-name">学习空间</div></div>
-        <div class="module-item" onclick="showToast('运动打卡')"><div class="module-icon green">💪</div><div class="module-name">运动打卡</div></div>
+        <div class="module-item" onclick="openSportModal()"><div class="module-icon green">💪</div><div class="module-name">运动打卡</div></div>
         <div class="module-item" onclick="showToast('灵感小本')"><div class="module-icon yellow">💡</div><div class="module-name">灵感小本</div></div>
         <div class="module-item" onclick="showToast('热点二创')"><div class="module-icon pink">🔥</div><div class="module-name">热点二创</div></div>
         <div class="module-item" onclick="showToast('内容复盘')"><div class="module-icon blue">🔄</div><div class="module-name">内容复盘</div></div>
@@ -498,6 +528,46 @@
       </div>
     </div>
 
+    <!-- Modal: 运动打卡 -->
+    <div class="modal-overlay" id="sportModal">
+      <div class="modal">
+        <div class="modal-title">运动打卡</div>
+        <div class="sport-summary">
+          <div class="sport-summary-left" id="sportSummaryLeft">今日 0/0 项已打卡</div>
+          <div class="sport-summary-right" id="sportSummaryRight">0 分钟</div>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="openAddSportModal()" style="width:100%;margin-bottom:14px">＋ 添加新运动</button>
+        <div class="sport-list" id="sportList"></div>
+      </div>
+    </div>
+
+    <!-- Modal: 添加新运动 -->
+    <div class="modal-overlay" id="sportAddModal">
+      <div class="modal">
+        <div class="modal-title">添加新运动</div>
+        <label class="modal-label">运动名称</label>
+        <input type="text" class="modal-input" id="sportNameInput" placeholder="例如：晨跑、瑜伽、力量训练" maxlength="20">
+        <label class="modal-label">选择图标</label>
+        <div class="icon-grid" id="iconGrid"></div>
+        <div class="sport-form-row">
+          <div>
+            <label class="modal-label">打卡窗口 · 开始</label>
+            <input type="time" class="modal-input" id="sportStartInput" value="07:00">
+          </div>
+          <div>
+            <label class="modal-label">打卡窗口 · 结束</label>
+            <input type="time" class="modal-input" id="sportEndInput" value="09:00">
+          </div>
+        </div>
+        <label class="modal-label">默认时长（分钟）</label>
+        <input type="number" class="modal-input" id="sportMinutesInput" placeholder="30" min="1" value="30">
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal('sportAddModal')">取消</button>
+          <button class="btn btn-primary" onclick="saveSport()">保存</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal: 灵感详情 -->
     <div class="modal-overlay" id="inspDetailModal">
       <div class="modal">
@@ -560,6 +630,7 @@
   <script>
     const STORAGE_KEY = 'growth_workbench_data';
     const TAGS = ['选题灵感', '文案灵感', '镜头构思', '标题思路'];
+    const SPORT_ICONS = ['🏃','🏃‍♀️','🏊','🚴','🧘','🏋️','⛹️','🤸','🤾','🏌️','🏄','🚶','💃','🤺','🥊','🎾','⚽','🏀','🏐','🏓','🏸','🥏','🚣','🧗','🏂','🎿','🛹','🏇','👟','🔥','💦','⚡'];
 
     let appData = defaultData();
     let editingInspId = null;
@@ -580,7 +651,11 @@
           { id: 4, text: '健身 30 分钟', done: false },
           { id: 5, text: '写一篇热点二创草稿', done: false }
         ],
-        sport: { checked: true, minutes: 30 },
+        sports: [
+          { id: 1, name: '晨跑', icon: '🏃', start: '06:00', end: '09:00', minutes: 30, checked: false, checkedDate: '' },
+          { id: 2, name: '瑜伽', icon: '🧘', start: '18:00', end: '20:00', minutes: 20, checked: false, checkedDate: '' },
+          { id: 3, name: '力量训练', icon: '🏋️', start: '19:00', end: '21:00', minutes: 40, checked: false, checkedDate: '' }
+        ],
         learn: { active: 2, done: 12, days: 8, total: 20 },
         inspiration: [
           { id: 1, title: 'AI 绘画工具横评', content: '对比 Midjourney / Stable Diffusion / 即梦的出图质量与中文提示词适配度，做成一期测评视频。', tag: '选题灵感', pinned: true, archived: false, createdAt: '2026-07-26', linked: false },
@@ -606,6 +681,7 @@
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) appData = Object.assign(defaultData(), JSON.parse(saved));
       } catch (e) { console.warn('读取失败', e); }
+      resetSportsDaily();
       renderAll();
     }
 
@@ -630,8 +706,9 @@
       document.getElementById('todoCount').textContent = total - done;
       document.getElementById('todoProgress').style.width = pct + '%';
       document.getElementById('todoText').textContent = '完成率 ' + pct + '%';
-      document.getElementById('sportCount').textContent = appData.sport.minutes;
-      document.getElementById('sportText').textContent = appData.sport.checked ? '已打卡 ✓' : '未打卡';
+      const ss = sportStats();
+      document.getElementById('sportCount').textContent = ss.min;
+      document.getElementById('sportText').textContent = ss.count ? ('已打卡 ' + ss.count + ' 项 ✓') : '未打卡';
     }
 
     function updateHeader() {
@@ -849,6 +926,128 @@
     function deletePlan(id) {
       appData.todos = appData.todos.filter(x => x.id !== id);
       saveData(); renderPlans(); renderHome();
+      showToast('已删除');
+    }
+
+    /* ---------- 运动打卡 ---------- */
+    function sportStats() {
+      const checked = appData.sports.filter(s => s.checked);
+      const min = checked.reduce((a, s) => a + (+s.minutes || 0), 0);
+      return { count: checked.length, total: appData.sports.length, min };
+    }
+
+    function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+    function timeInWindow(start, end) {
+      if (!start || !end) return false;
+      const now = new Date();
+      const cur = now.getHours() * 60 + now.getMinutes();
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      const s = sh * 60 + sm, e = eh * 60 + em;
+      if (e < s) return cur >= s || cur <= e; // 跨午夜窗口
+      return cur >= s && cur <= e;
+    }
+
+    function resetSportsDaily() {
+      const t = todayStr();
+      let changed = false;
+      appData.sports.forEach(s => {
+        if (s.checked && s.checkedDate !== t) { s.checked = false; s.checkedDate = ''; changed = true; }
+      });
+      if (changed) {
+        saveData();
+        if (document.getElementById('sportModal').classList.contains('show')) renderSports();
+        else renderHome();
+      }
+    }
+
+    function renderSports() {
+      const list = document.getElementById('sportList');
+      if (!list) return;
+      if (!appData.sports.length) {
+        list.innerHTML = '<div class="empty-state"><span class="icon">💪</span>还没有运动项目，点上方按钮添加第一个吧</div>';
+      } else {
+        list.innerHTML = appData.sports.map(s => {
+          const inWin = timeInWindow(s.start, s.end);
+          return `
+          <div class="sport-item">
+            <div class="sport-icon">${s.icon}</div>
+            <div class="sport-main" onclick="toggleSport(${s.id})">
+              <div class="sport-name ${s.checked ? 'done' : ''}">${escapeHtml(s.name)}</div>
+              <div class="sport-window ${inWin ? 'in' : ''}">🕒 ${s.start}–${s.end}${inWin ? ' · 进行中' : ''}</div>
+            </div>
+            <div class="sport-min">
+              <input type="number" value="${s.minutes}" min="0" onchange="updateSportMinutes(${s.id}, this.value)">
+              <div class="sport-min-label">分钟</div>
+            </div>
+            <div class="sport-check ${s.checked ? 'done' : ''}" onclick="toggleSport(${s.id})">${s.checked ? '✓' : ''}</div>
+            <div class="sport-del" onclick="deleteSport(${s.id})">🗑️</div>
+          </div>`;
+        }).join('');
+      }
+      const ss = sportStats();
+      document.getElementById('sportSummaryLeft').textContent = '今日 ' + ss.count + '/' + ss.total + ' 项已打卡';
+      document.getElementById('sportSummaryRight').textContent = ss.min + ' 分钟';
+      // 同步首页统计
+      document.getElementById('sportCount').textContent = ss.min;
+      document.getElementById('sportText').textContent = ss.count ? ('已打卡 ' + ss.count + ' 项 ✓') : '未打卡';
+    }
+
+    function openSportModal() { resetSportsDaily(); renderSports(); showModal('sportModal'); }
+
+    let selectedSportIcon = '';
+    function openAddSportModal() {
+      selectedSportIcon = SPORT_ICONS[0];
+      document.getElementById('sportNameInput').value = '';
+      document.getElementById('sportStartInput').value = '07:00';
+      document.getElementById('sportEndInput').value = '09:00';
+      document.getElementById('sportMinutesInput').value = '30';
+      const grid = document.getElementById('iconGrid');
+      grid.innerHTML = SPORT_ICONS.map((ic, i) => `<div class="icon-cell ${i === 0 ? 'active' : ''}" onclick="selectSportIcon(${i}, this)">${ic}</div>`).join('');
+      showModal('sportAddModal');
+    }
+
+    function selectSportIcon(idx, el) {
+      selectedSportIcon = SPORT_ICONS[idx];
+      document.querySelectorAll('#iconGrid .icon-cell').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function saveSport() {
+      const name = document.getElementById('sportNameInput').value.trim();
+      if (!name) { showToast('请输入运动名称'); return; }
+      const start = document.getElementById('sportStartInput').value || '00:00';
+      const end = document.getElementById('sportEndInput').value || '23:59';
+      let minutes = parseInt(document.getElementById('sportMinutesInput').value, 10);
+      if (isNaN(minutes) || minutes < 0) minutes = 0;
+      const id = Math.max(0, ...appData.sports.map(s => s.id)) + 1;
+      appData.sports.push({ id, name, icon: selectedSportIcon || SPORT_ICONS[0], start, end, minutes, checked: false, checkedDate: '' });
+      saveData(); renderSports(); renderHome();
+      closeModal('sportAddModal');
+      showToast('已添加：' + name);
+    }
+
+    function toggleSport(id) {
+      const s = appData.sports.find(x => x.id === id);
+      if (!s) return;
+      s.checked = !s.checked;
+      if (s.checked) s.checkedDate = todayStr();
+      saveData(); renderSports(); renderHome();
+    }
+
+    function updateSportMinutes(id, val) {
+      const s = appData.sports.find(x => x.id === id);
+      if (!s) return;
+      let m = parseInt(val, 10);
+      if (isNaN(m) || m < 0) m = 0;
+      s.minutes = m;
+      saveData(); renderSports(); renderHome();
+    }
+
+    function deleteSport(id) {
+      appData.sports = appData.sports.filter(x => x.id !== id);
+      saveData(); renderSports(); renderHome();
       showToast('已删除');
     }
 
@@ -1192,6 +1391,7 @@
     loadData();
     setInterval(updateHeader, 60000);
     setInterval(checkReminders, 10000);
+    setInterval(resetSportsDaily, 60000);
     checkReminders();
     if (appData.settings.notify && 'Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {});

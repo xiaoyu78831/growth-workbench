@@ -1,4 +1,4 @@
-const CACHE = 'growth-workbench-v6';
+const CACHE = 'growth-workbench-v7';
 const ASSETS = [
   'index.html',
   'manifest.json',
