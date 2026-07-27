@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>成长工作台</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#A78BFA">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="成长工作台">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <style>
+    :root {
+      --bg: #F7F8FB;
+      --card: #FFFFFF;
+      --text-main: #1F2937;
+      --text-sub: #6B7280;
+      --text-light: #9CA3AF;
+      --purple: #A78BFA;
+      --purple-light: #EDE9FE;
+      --teal: #2DD4BF;
+      --teal-light: #CCFBF1;
+      --pink: #F9A8D4;
+      --pink-light: #FCE7F3;
+      --green: #86EFAC;
+      --green-light: #DCFCE7;
+      --yellow: #FDE047;
+      --yellow-light: #FEF9C3;
+      --blue: #93C5FD;
+      --blue-light: #DBEAFE;
+      --orange: #FDBA74;
+      --orange-light: #FFEDD5;
+      --shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      --shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.08);
+      --radius: 20px;
+      --radius-sm: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg); color: var(--text-main); min-height: 100vh; overflow-x: hidden;
+    }
+
+    .app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; padding-bottom: 90px; }
+
+    /* Header */
+    .header { padding: 24px 20px 16px; }
+    .header-time { font-size: 14px; color: var(--text-light); margin-bottom: 4px; }
+    .header-greet { font-size: 26px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    .header-date { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+
+    .page { display: none; animation: fadeIn 0.3s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section { padding: 0 20px; margin-bottom: 20px; }
+    .section-title { font-size: 15px; font-weight: 600; margin: 0 20px 14px; display: flex; align-items: center; gap: 6px; }
+
+    /* Stat cards (home) */
+    .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat-card { border-radius: var(--radius); padding: 18px; color: white; position: relative; overflow: hidden; box-shadow: var(--shadow); min-height: 110px; display: flex; flex-direction: column; justify-content: space-between; }
+    .stat-card.purple { background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%); }
+    .stat-card.teal { background: linear-gradient(135deg, #2DD4BF 0%, #14B8A6 100%); }
+    .stat-card::after { content: ""; position: absolute; right: -20px; top: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(255, 255, 255, 0.12); }
+    .stat-number { font-size: 32px; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: 13px; opacity: 0.95; margin-top: 6px; }
+    .stat-progress { margin-top: 10px; }
+    .stat-progress-bar { height: 5px; background: rgba(255, 255, 255, 0.3); border-radius: 10px; overflow: hidden; }
+    .stat-progress-fill { height: 100%; background: rgba(255, 255, 255, 0.9); border-radius: 10px; transition: width 0.6s ease; }
+    .stat-progress-text { font-size: 11px; opacity: 0.9; margin-top: 5px; }
+
+    /* Panel card */
+    .panel-card { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .panel-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .panel-more { font-size: 12px; color: var(--purple); cursor: pointer; }
+    .progress-overview { display: flex; align-items: center; gap: 16px; }
+    .progress-ring { width: 72px; height: 72px; flex-shrink: 0; position: relative; }
+    .progress-ring svg { transform: rotate(-90deg); }
+    .progress-ring-bg { fill: none; stroke: #F3F4F6; stroke-width: 8; }
+    .progress-ring-fill { fill: none; stroke: url(#ringGradient); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 201; stroke-dashoffset: 201; transition: stroke-dashoffset 0.8s ease; }
+    .progress-ring-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 15px; font-weight: 700; }
+    .progress-info { flex: 1; }
+    .progress-info-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+    .progress-info-item:last-child { margin-bottom: 0; }
+    .progress-info-label { color: var(--text-sub); }
+    .progress-info-value { font-weight: 600; }
+
+    /* Module grid (home) */
+    .module-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 0 20px; margin-bottom: 20px; }
+    .module-item { background: var(--card); border-radius: var(--radius-sm); padding: 16px 8px; text-align: center; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s; }
+    .module-item:active { transform: scale(0.96); }
+    .module-icon { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 22px; }
+    .module-icon.purple { background: var(--purple-light); }
+    .module-icon.teal { background: var(--teal-light); }
+    .module-icon.pink { background: var(--pink-light); }
+    .module-icon.green { background: var(--green-light); }
+    .module-icon.yellow { background: var(--yellow-light); }
+    .module-icon.blue { background: var(--blue-light); }
+    .module-name { font-size: 12px; font-weight: 500; }
+
+    .banner { margin: 0 20px 20px; background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%); border-radius: var(--radius-sm); padding: 16px 18px; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); cursor: pointer; }
+    .banner-text { font-size: 14px; font-weight: 600; }
+    .banner-sub { font-size: 12px; opacity: 0.9; margin-top: 3px; }
+    .banner-icon { font-size: 24px; opacity: 0.9; }
+
+    /* Search bar */
+    .search-bar { margin: 0 20px 14px; position: relative; }
+    .search-bar input { width: 100%; border: none; background: var(--card); border-radius: 14px; padding: 12px 16px 12px 42px; font-size: 14px; color: var(--text-main); box-shadow: var(--shadow); outline: none; }
+    .search-bar .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text-light); }
+
+    /* New button (pinned top) */
+    .new-btn { margin: 0 20px 14px; background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%); color: white; border: none; border-radius: 14px; padding: 13px; width: calc(100% - 40px); font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .new-btn:active { transform: scale(0.98); }
+
+    /* Filter chips */
+    .filter-chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 14px; scrollbar-width: none; }
+    .filter-chips::-webkit-scrollbar { display: none; }
+    .chip { flex-shrink: 0; padding: 7px 14px; border-radius: 20px; background: var(--card); font-size: 13px; color: var(--text-sub); cursor: pointer; box-shadow: var(--shadow); border: 1px solid transparent; transition: all 0.2s; }
+    .chip.active { background: var(--purple-light); color: #7C3AED; font-weight: 600; border-color: var(--purple); }
+
+    /* Inspiration list */
+    .insp-list { padding: 0 20px 20px; }
+    .insp-card { background: var(--card); border-radius: var(--radius-sm); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; cursor: pointer; }
+    .insp-top { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .insp-pin { font-size: 14px; color: var(--purple); }
+    .insp-title { font-size: 14px; font-weight: 600; flex: 1; line-height: 1.4; }
+    .insp-content { font-size: 13px; color: var(--text-sub); line-height: 1.6; max-height: 62px; overflow: hidden; margin-bottom: 12px; }
+    .insp-bottom { display: flex; align-items: center; justify-content: space-between; }
+    .insp-tag { font-size: 11px; padding: 3px 10px; border-radius: 10px; font-weight: 500; }
+    .tag-选题灵感 { background: var(--purple-light); color: #7C3AED; }
+    .tag-文案灵感 { background: var(--teal-light); color: #0D9488; }
+    .tag-镜头构思 { background: var(--pink-light); color: #BE185D; }
+    .tag-标题思路 { background: var(--yellow-light); color: #A16207; }
+    .insp-meta { font-size: 11px; color: var(--text-light); }
+    .insp-actions { display: flex; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #F3F4F6; }
+    .insp-action { flex: 1; text-align: center; font-size: 12px; color: var(--text-sub); padding: 7px; border-radius: 10px; background: #F9FAFB; cursor: pointer; transition: background 0.2s; }
+    .insp-action:active { background: #F3F4F6; }
+    .insp-action.on { color: var(--purple); font-weight: 600; }
+    .insp-action.link-on { color: var(--teal); font-weight: 600; }
+
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 13px; }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; display: block; }
+
+    /* Folder tabs (resource) */
+    .folder-tabs { display: flex; gap: 8px; padding: 0 20px 14px; }
+    .folder-tab { flex: 1; text-align: center; padding: 10px; border-radius: 12px; background: var(--card); font-size: 13px; color: var(--text-sub); box-shadow: var(--shadow); cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+    .folder-tab.active { color: var(--purple); font-weight: 600; border-bottom-color: var(--purple); }
+
+    .resource-list { padding: 0 20px 20px; }
+    .resource-card { background: var(--card); border-radius: var(--radius-sm); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; cursor: pointer; }
+    .resource-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .resource-title { font-size: 14px; font-weight: 600; }
+    .resource-folder { font-size: 11px; padding: 3px 10px; border-radius: 10px; }
+    .folder-学习笔记 { background: var(--blue-light); color: #1D4ED8; }
+    .folder-热点素材 { background: var(--orange-light); color: #C2410C; }
+    .folder-复盘档案 { background: var(--green-light); color: #15803D; }
+    .resource-content { font-size: 13px; color: var(--text-sub); line-height: 1.6; max-height: 44px; overflow: hidden; }
+    .resource-date { font-size: 11px; color: var(--text-light); margin-top: 10px; }
+
+    /* Data dashboard (me) */
+    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px 20px; }
+    .data-card { background: var(--card); border-radius: var(--radius-sm); padding: 18px; box-shadow: var(--shadow); }
+    .data-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 12px; }
+    .data-value { font-size: 24px; font-weight: 700; line-height: 1; }
+    .data-label { font-size: 12px; color: var(--text-sub); margin-top: 6px; }
+
+    /* Profile header (me) */
+    .profile-header { background: var(--card); border-radius: 0 0 var(--radius) var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+    .profile-user { display: flex; align-items: center; gap: 14px; }
+    .profile-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #A78BFA 0%, #2DD4BF 100%); display: flex; align-items: center; justify-content: center; font-size: 26px; color: white; font-weight: 600; }
+    .profile-name { font-size: 18px; font-weight: 700; }
+    .profile-bio { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+
+    .menu-list { background: var(--card); border-radius: var(--radius); padding: 8px 0; margin: 0 20px 20px; box-shadow: var(--shadow); }
+    .menu-group-title { font-size: 12px; color: var(--text-light); padding: 12px 18px 6px; font-weight: 500; }
+    .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; cursor: pointer; }
+    .menu-item:active { background: #F9FAFB; }
+    .menu-item-left { display: flex; align-items: center; gap: 12px; }
+    .menu-item-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .menu-item-title { font-size: 14px; font-weight: 500; }
+    .menu-item-arrow { color: var(--text-light); font-size: 14px; }
+    .menu-item-value { font-size: 13px; color: var(--text-sub); margin-right: 6px; }
+
+    /* Switch */
+    .switch { position: relative; width: 44px; height: 26px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #E5E7EB; border-radius: 26px; transition: 0.3s; }
+    .slider::before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .switch input:checked + .slider { background: var(--purple); }
+    .switch input:checked + .slider::before { transform: translateX(18px); }
+
+    /* Danger / data module */
+    .data-module-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 18px; background: none; border: none; cursor: pointer; font-size: 14px; color: var(--text-main); font-weight: 500; }
+    .data-module-btn:active { background: #F9FAFB; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: none; align-items: flex-end; justify-content: center; z-index: 300; }
+    .modal-overlay.show { display: flex; animation: fadeIn 0.2s ease; }
+    .modal { background: var(--card); width: 100%; max-width: 430px; border-radius: 22px 22px 0 0; padding: 22px 20px calc(22px + env(safe-area-inset-bottom)); animation: slideUp 0.3s ease; }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-title { font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 18px; }
+    .modal-label { font-size: 13px; color: var(--text-sub); margin-bottom: 6px; display: block; }
+    .modal-input, .modal-textarea { width: 100%; border: 1px solid #E5E7EB; border-radius: 12px; padding: 12px; font-size: 14px; color: var(--text-main); outline: none; font-family: inherit; margin-bottom: 14px; resize: none; }
+    .modal-input:focus, .modal-textarea:focus { border-color: var(--purple); }
+    .modal-textarea { min-height: 90px; }
+    .tag-select { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .tag-opt { padding: 7px 14px; border-radius: 18px; font-size: 13px; background: #F3F4F6; color: var(--text-sub); cursor: pointer; border: 1px solid transparent; }
+    .tag-opt.active { background: var(--purple-light); color: #7C3AED; border-color: var(--purple); font-weight: 600; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 8px; }
+    .btn { flex: 1; padding: 13px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-primary { background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%); color: white; }
+    .btn-ghost { background: #F3F4F6; color: var(--text-sub); }
+    .btn-danger { background: #FEE2E2; color: #DC2626; }
+    .btn:active { transform: scale(0.98); }
+
+    .modal-desc { font-size: 13px; color: var(--text-sub); line-height: 1.6; text-align: center; margin-bottom: 18px; }
+    .modal-detail { background: #F9FAFB; border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--text-sub); margin-bottom: 18px; line-height: 1.8; }
+
+    /* Tab bar */
+    .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.04); display: flex; justify-content: space-around; padding: 10px 0 24px; z-index: 100; }
+    .tab-item { flex: 1; text-align: center; cursor: pointer; color: var(--text-light); transition: color 0.2s; }
+    .tab-item.active { color: var(--purple); }
+    .tab-icon { font-size: 22px; margin-bottom: 3px; }
+    .tab-label { font-size: 11px; }
+
+    .page-head { padding: 24px 20px 8px; display: flex; align-items: center; justify-content: space-between; }
+    .page-head-title { font-size: 22px; font-weight: 700; }
+    .page-head-sub { font-size: 13px; color: var(--text-sub); margin-top: 2px; }
+    .page-head-action { font-size: 13px; color: var(--purple); cursor: pointer; }
+
+    #fileInput { display: none; }
+    .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(31,41,55,0.92); color: white; padding: 12px 22px; border-radius: 22px; font-size: 14px; z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.3s; max-width: 80%; text-align: center; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <svg width="0" height="0" style="position:absolute">
+      <defs>
+        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#A78BFA" />
+          <stop offset="100%" style="stop-color:#2DD4BF" />
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <!-- ===================== 首页 ===================== -->
+    <div class="page active" id="page-home">
+      <div class="header">
+        <div class="header-time" id="headerTime">00:00</div>
+        <div class="header-greet"><span id="greetIcon">👋</span><span id="greetText">中午好，小雨</span></div>
+        <div class="header-date" id="headerDate">1月1日 星期一</div>
+      </div>
+
+      <div class="section">
+        <div class="card-row">
+          <div class="stat-card purple">
+            <div>
+              <div class="stat-number" id="todoCount">0</div>
+              <div class="stat-label">今日计划</div>
+            </div>
+            <div class="stat-progress">
+              <div class="stat-progress-bar"><div class="stat-progress-fill" id="todoProgress" style="width:0%"></div></div>
+              <div class="stat-progress-text" id="todoText">完成率 0%</div>
+            </div>
+          </div>
+          <div class="stat-card teal">
+            <div>
+              <div class="stat-number" id="sportCount">0</div>
+              <div class="stat-label">今日运动(分钟)</div>
+            </div>
+            <div class="stat-progress-text" id="sportText">未打卡</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div class="panel-title"><span class="icon">📊</span>学习进度总览</div>
+            <div class="panel-more" onclick="showToast('查看全部学习进度')">查看全部 →</div>
+          </div>
+          <div class="progress-overview">
+            <div class="progress-ring">
+              <svg width="72" height="72" viewBox="0 0 72 72">
+                <circle class="progress-ring-bg" cx="36" cy="36" r="32"/>
+                <circle class="progress-ring-fill" id="learnRing" cx="36" cy="36" r="32"/>
+              </svg>
+              <div class="progress-ring-text" id="learnPercent">0%</div>
+            </div>
+            <div class="progress-info">
+              <div class="progress-info-item"><span class="progress-info-label">进行中的计划</span><span class="progress-info-value" id="learnActive">0</span></div>
+              <div class="progress-info-item"><span class="progress-info-label">已完成课时</span><span class="progress-info-value" id="learnDone">0</span></div>
+              <div class="progress-info-item"><span class="progress-info-label">累计学习天数</span><span class="progress-info-value" id="learnDays">0</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title"><span>⚡</span>核心模块</div>
+      <div class="module-grid">
+        <div class="module-item" onclick="switchTab('home');showToast('每日计划')"><div class="module-icon purple">📝</div><div class="module-name">每日计划</div></div>
+        <div class="module-item" onclick="showToast('学习空间')"><div class="module-icon teal">📚</div><div class="module-name">学习空间</div></div>
+        <div class="module-item" onclick="showToast('运动打卡')"><div class="module-icon green">💪</div><div class="module-name">运动打卡</div></div>
+        <div class="module-item" onclick="showToast('灵感小本')"><div class="module-icon yellow">💡</div><div class="module-name">灵感小本</div></div>
+        <div class="module-item" onclick="showToast('热点二创')"><div class="module-icon pink">🔥</div><div class="module-name">热点二创</div></div>
+        <div class="module-item" onclick="showToast('内容复盘')"><div class="module-icon blue">🔄</div><div class="module-name">内容复盘</div></div>
+      </div>
+
+      <div class="banner" onclick="showToast('AI 助手即将上线')">
+        <div><div class="banner-text">AI 成长助手</div><div class="banner-sub">有什么想问的，随时问我</div></div>
+        <div class="banner-icon">🤖</div>
+      </div>
+    </div>
+
+    <!-- ===================== Tab2 灵感 ===================== -->
+    <div class="page" id="page-inspire">
+      <div class="page-head">
+        <div><div class="page-head-title">灵感小本</div><div class="page-head-sub" id="inspCountText">共 0 条灵感</div></div>
+        <div class="page-head-action" onclick="showArchived()">已归档</div>
+      </div>
+
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="inspSearch" placeholder="搜索历史灵感…" oninput="renderInspiration()">
+      </div>
+
+      <button class="new-btn" onclick="openInspModal()">＋ 新增灵感</button>
+
+      <div class="filter-chips" id="inspFilters">
+        <div class="chip active" data-filter="all" onclick="setInspFilter('all', this)">全部</div>
+        <div class="chip" data-filter="选题灵感" onclick="setInspFilter('选题灵感', this)">选题灵感</div>
+        <div class="chip" data-filter="文案灵感" onclick="setInspFilter('文案灵感', this)">文案灵感</div>
+        <div class="chip" data-filter="镜头构思" onclick="setInspFilter('镜头构思', this)">镜头构思</div>
+        <div class="chip" data-filter="标题思路" onclick="setInspFilter('标题思路', this)">标题思路</div>
+      </div>
+
+      <div class="insp-list" id="inspList"></div>
+    </div>
+
+    <!-- ===================== Tab3 资料 ===================== -->
+    <div class="page" id="page-resource">
+      <div class="page-head">
+        <div><div class="page-head-title">资料库</div><div class="page-head-sub">学习笔记 · 热点素材 · 复盘档案</div></div>
+      </div>
+
+      <div class="folder-tabs" id="folderTabs">
+        <div class="folder-tab active" data-folder="学习笔记" onclick="setFolder('学习笔记', this)">📚 学习笔记</div>
+        <div class="folder-tab" data-folder="热点素材" onclick="setFolder('热点素材', this)">🔥 热点素材</div>
+        <div class="folder-tab" data-folder="复盘档案" onclick="setFolder('复盘档案', this)">🗂️ 复盘档案</div>
+      </div>
+
+      <div class="resource-list" id="resourceList"></div>
+    </div>
+
+    <!-- ===================== Tab4 我的 ===================== -->
+    <div class="page" id="page-me">
+      <div class="profile-header">
+        <div class="profile-user">
+          <div class="profile-avatar">我</div>
+          <div>
+            <div class="profile-name" id="profileName">小雨</div>
+            <div class="profile-bio">每天进步一点点 ✨</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title"><span>📈</span>创作者数据看板</div>
+      <div class="data-grid">
+        <div class="data-card">
+          <div class="data-icon" style="background:var(--purple-light)">🔥</div>
+          <div class="data-value" id="streakDays">0</div>
+          <div class="data-label">连续打卡天数</div>
+        </div>
+        <div class="data-card">
+          <div class="data-icon" style="background:var(--teal-light)">⏱️</div>
+          <div class="data-value" id="studyHours">0h</div>
+          <div class="data-label">累计学习时长</div>
+        </div>
+        <div class="data-card">
+          <div class="data-icon" style="background:var(--green-light)">🔄</div>
+          <div class="data-value" id="reviewCount">0</div>
+          <div class="data-label">复盘次数</div>
+        </div>
+        <div class="data-card">
+          <div class="data-icon" style="background:var(--yellow-light)">💡</div>
+          <div class="data-value" id="inspTotal">0</div>
+          <div class="data-label">灵感条数</div>
+        </div>
+      </div>
+
+      <div class="menu-list">
+        <div class="menu-group-title">设置</div>
+        <div class="menu-item" onclick="openNickModal()">
+          <div class="menu-item-left"><div class="menu-item-icon" style="background:var(--purple-light)">👤</div><div class="menu-item-title">用户昵称</div></div>
+          <div style="display:flex;align-items:center"><span class="menu-item-value" id="setNickname">小雨</span><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-left"><div class="menu-item-icon" style="background:var(--pink-light)">🔔</div><div class="menu-item-title">通知设置</div></div>
+          <label class="switch"><input type="checkbox" id="setNotify" checked onchange="saveSettings()"><span class="slider"></span></label>
+        </div>
+        <div class="menu-item" onclick="showToast('主题配色：浅色（可扩展）')">
+          <div class="menu-item-left"><div class="menu-item-icon" style="background:var(--blue-light)">🎨</div><div class="menu-item-title">主题配色</div></div>
+          <div style="display:flex;align-items:center"><span class="menu-item-value">浅色</span><span class="menu-item-arrow">›</span></div>
+        </div>
+        <div class="menu-item">
+          <div class="menu-item-left"><div class="menu-item-icon" style="background:var(--orange-light)">⚙️</div><div class="menu-item-title">通用设置</div></div>
+          <label class="switch"><input type="checkbox" id="setGeneral" onchange="saveSettings()"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <div class="menu-list">
+        <div class="menu-group-title">数据管理 · 备份与恢复</div>
+        <button class="data-module-btn" onclick="exportData()">
+          <div class="menu-item-icon" style="background:var(--purple-light)">⬇️</div>
+          <div class="menu-item-title">导出全部数据</div>
+          <div style="flex:1"></div><span class="menu-item-arrow">›</span>
+        </button>
+        <div style="height:1px;background:#F3F4F6;margin:0 18px"></div>
+        <button class="data-module-btn" onclick="importData()">
+          <div class="menu-item-icon" style="background:var(--teal-light)">⬆️</div>
+          <div class="menu-item-title">导入备份</div>
+          <div style="flex:1"></div><span class="menu-item-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <div class="tab-item active" data-page="home" onclick="switchTab('home')"><div class="tab-icon">🏠</div><div class="tab-label">首页</div></div>
+      <div class="tab-item" data-page="inspire" onclick="switchTab('inspire')"><div class="tab-icon">💡</div><div class="tab-label">灵感</div></div>
+      <div class="tab-item" data-page="resource" onclick="switchTab('resource')"><div class="tab-icon">📁</div><div class="tab-label">资料</div></div>
+      <div class="tab-item" data-page="me" onclick="switchTab('me')"><div class="tab-icon">👤</div><div class="tab-label">我的</div></div>
+    </div>
+
+    <!-- Modal: 新增/编辑灵感 -->
+    <div class="modal-overlay" id="inspModal">
+      <div class="modal">
+        <div class="modal-title" id="inspModalTitle">新增灵感</div>
+        <label class="modal-label">标题</label>
+        <input type="text" class="modal-input" id="inspInputTitle" placeholder="一句话记录灵感…">
+        <label class="modal-label">内容</label>
+        <textarea class="modal-textarea" id="inspInputContent" placeholder="展开你的想法…"></textarea>
+        <label class="modal-label">标签分类</label>
+        <div class="tag-select" id="inspTagSelect">
+          <div class="tag-opt" data-tag="选题灵感" onclick="selectTag('选题灵感', this)">选题灵感</div>
+          <div class="tag-opt" data-tag="文案灵感" onclick="selectTag('文案灵感', this)">文案灵感</div>
+          <div class="tag-opt" data-tag="镜头构思" onclick="selectTag('镜头构思', this)">镜头构思</div>
+          <div class="tag-opt" data-tag="标题思路" onclick="selectTag('标题思路', this)">标题思路</div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal('inspModal')">取消</button>
+          <button class="btn btn-primary" onclick="saveInspiration()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: 详情查看 -->
+    <div class="modal-overlay" id="detailModal">
+      <div class="modal">
+        <div class="modal-title" id="detailTitle">详情</div>
+        <div class="modal-detail" id="detailBody"></div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" onclick="closeModal('detailModal')">知道了</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: 导入确认 -->
+    <div class="modal-overlay" id="importModal">
+      <div class="modal">
+        <div class="modal-title">导入备份</div>
+        <div class="modal-desc">检测到本地备份文件，请选择恢复方式。<br>为避免误操作丢失现有内容，请谨慎选择。</div>
+        <div class="modal-detail" id="importDetail"></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal('importModal')">取消</button>
+          <button class="btn btn-primary" onclick="confirmImport('merge')">合并数据</button>
+          <button class="btn btn-danger" onclick="confirmImport('replace')">覆盖现有</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: 昵称编辑 -->
+    <div class="modal-overlay" id="nickModal">
+      <div class="modal">
+        <div class="modal-title">编辑昵称</div>
+        <label class="modal-label">用户昵称</label>
+        <input type="text" class="modal-input" id="nickInput" placeholder="例如：小雨" maxlength="12">
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="closeModal('nickModal')">取消</button>
+          <button class="btn btn-primary" onclick="saveNickname()">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <input type="file" id="fileInput" accept=".json" onchange="handleFile(this)">
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'growth_workbench_data';
+    const TAGS = ['选题灵感', '文案灵感', '镜头构思', '标题思路'];
+
+    let appData = defaultData();
+    let editingInspId = null;
+    let selectedTag = '';
+    let currentFilter = 'all';
+    let currentFolder = '学习笔记';
+    let showingArchived = false;
+    let pendingImport = null;
+
+    function defaultData() {
+      return {
+        todos: [
+          { id: 1, text: '阅读《认知觉醒》第3章', done: true },
+          { id: 2, text: '完成英语听力练习', done: true },
+          { id: 3, text: '整理周复盘笔记', done: false },
+          { id: 4, text: '健身 30 分钟', done: false },
+          { id: 5, text: '写一篇热点二创草稿', done: false }
+        ],
+        sport: { checked: true, minutes: 30 },
+        learn: { active: 2, done: 12, days: 8, total: 20 },
+        inspiration: [
+          { id: 1, title: 'AI 绘画工具横评', content: '对比 Midjourney / Stable Diffusion / 即梦的出图质量与中文提示词适配度，做成一期测评视频。', tag: '选题灵感', pinned: true, archived: false, createdAt: '2026-07-26', linked: false },
+          { id: 2, title: '开头三秒钩子句式', content: '“你一定不知道…”“其实90%的人都错了”这类反常识开场，提升完播率。', tag: '文案灵感', pinned: false, archived: false, createdAt: '2026-07-25', linked: false },
+          { id: 3, title: '城市夜景延时运镜', content: '低角度推进 + 升镜，配合霓虹反光，适合做转场空镜。', tag: '镜头构思', pinned: false, archived: false, createdAt: '2026-07-24', linked: false },
+          { id: 4, title: '“普通人如何逆袭”', content: '标题方向：制造代入感 + 给出可执行的路径。', tag: '标题思路', pinned: false, archived: false, createdAt: '2026-07-23', linked: false }
+        ],
+        resources: [
+          { id: 1, folder: '学习笔记', title: '《认知觉醒》读书笔记', content: '元认知是觉察自己的思考过程；用「冥想 + 反思日记」训练。', createdAt: '2026-07-20' },
+          { id: 2, folder: '学习笔记', title: 'Python 数据分析课程笔记', content: 'Pandas 分组聚合、透视表、时间序列处理要点整理。', createdAt: '2026-07-18' },
+          { id: 3, folder: '热点素材', title: '某科技发布会话题文案', content: '收藏话题：AI 终端落地，评论区高赞观点汇总。', createdAt: '2026-07-25' },
+          { id: 4, folder: '热点素材', title: '暑期出游趋势截图', content: '截图：热门目的地榜单，可作为二创选题背景。', createdAt: '2026-07-22' },
+          { id: 5, folder: '复盘档案', title: '7月第3周内容复盘', content: '本周发布3条，平均完播率提升12%，标题优化见效。', createdAt: '2026-07-26' },
+          { id: 6, folder: '复盘档案', title: '7月第2周内容复盘', content: '选题偏窄，下周扩展「工具测评」方向。', createdAt: '2026-07-19' }
+        ],
+        stats: { streakDays: 8, totalStudyMinutes: 1240, reviewCount: 6 },
+        settings: { notify: true, general: false, nickname: '小雨' }
+      };
+    }
+
+    function loadData() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) appData = Object.assign(defaultData(), JSON.parse(saved));
+      } catch (e) { console.warn('读取失败', e); }
+      renderAll();
+    }
+
+    function saveData() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch (e) {} }
+
+    function renderAll() {
+      renderHome();
+      renderInspiration();
+      renderResources();
+      renderMe();
+      // settings
+      document.getElementById('setNotify').checked = !!appData.settings.notify;
+      document.getElementById('setGeneral').checked = !!appData.settings.general;
+      updateHeader();
+    }
+
+    /* ---------- 首页 ---------- */
+    function renderHome() {
+      const total = appData.todos.length;
+      const done = appData.todos.filter(t => t.done).length;
+      const pct = total ? Math.round(done / total * 100) : 0;
+      document.getElementById('todoCount').textContent = total - done;
+      document.getElementById('todoProgress').style.width = pct + '%';
+      document.getElementById('todoText').textContent = '完成率 ' + pct + '%';
+      document.getElementById('sportCount').textContent = appData.sport.minutes;
+      document.getElementById('sportText').textContent = appData.sport.checked ? '已打卡 ✓' : '未打卡';
+      const lp = appData.learn.total ? Math.round(appData.learn.done / appData.learn.total * 100) : 0;
+      document.getElementById('learnPercent').textContent = lp + '%';
+      document.getElementById('learnRing').style.strokeDashoffset = 201 * (1 - lp / 100);
+      document.getElementById('learnActive').textContent = appData.learn.active;
+      document.getElementById('learnDone').textContent = appData.learn.done;
+      document.getElementById('learnDays').textContent = appData.learn.days;
+    }
+
+    function updateHeader() {
+      const now = new Date();
+      const h = now.getHours();
+      document.getElementById('headerTime').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('headerDate').textContent = now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
+      let g = '你好', ic = '👋';
+      if (h < 6) { g = '夜深了'; ic = '🌙'; }
+      else if (h < 11) { g = '早上好'; ic = '🌅'; }
+      else if (h < 14) { g = '中午好'; ic = '☀️'; }
+      else if (h < 19) { g = '下午好'; ic = '🌤️'; }
+      else { g = '晚上好'; ic = '🌙'; }
+      const nick = (appData.settings.nickname || '').trim();
+      document.getElementById('greetText').textContent = nick ? (g + '，' + nick) : g;
+      document.getElementById('greetIcon').textContent = ic;
+    }
+
+    /* ---------- 灵感 ---------- */
+    function renderInspiration() {
+      const list = document.getElementById('inspList');
+      const kw = document.getElementById('inspSearch').value.trim().toLowerCase();
+      let items = appData.inspiration.filter(i => i.archived === showingArchived);
+      if (currentFilter !== 'all') items = items.filter(i => i.tag === currentFilter);
+      if (kw) items = items.filter(i => (i.title + i.content + i.tag).toLowerCase().includes(kw));
+      // 置顶优先，再按时间倒序
+      items.sort((a, b) => (b.pinned - a.pinned) || (b.createdAt < a.createdAt ? -1 : 1));
+
+      const total = appData.inspiration.filter(i => !i.archived).length;
+      document.getElementById('inspCountText').textContent = showingArchived ? ('已归档 ' + items.length + ' 条') : ('共 ' + total + ' 条灵感');
+
+      if (!items.length) {
+        list.innerHTML = '<div class="empty-state"><span class="icon">' + (showingArchived ? '🗄️' : '💡') + '</span>' + (showingArchived ? '暂无已归档灵感' : '还没有灵感，点击上方按钮记录第一条吧') + '</div>';
+        return;
+      }
+      list.innerHTML = items.map(i => `
+        <div class="insp-card" onclick="editInspiration(${i.id})">
+          <div class="insp-top">
+            ${i.pinned ? '<span class="insp-pin">📌</span>' : ''}
+            <div class="insp-title">${escapeHtml(i.title)}</div>
+          </div>
+          <div class="insp-content">${escapeHtml(i.content)}</div>
+          <div class="insp-bottom">
+            <span class="insp-tag tag-${i.tag}">${i.tag}</span>
+            <span class="insp-meta">${i.createdAt}${i.linked ? ' · 已关联二创' : ''}</span>
+          </div>
+          <div class="insp-actions" onclick="event.stopPropagation()">
+            <div class="insp-action ${i.pinned ? 'on' : ''}" onclick="togglePin(${i.id})">${i.pinned ? '取消置顶' : '置顶'}</div>
+            <div class="insp-action ${i.linked ? 'link-on' : ''}" onclick="toggleLink(${i.id})">${i.linked ? '已关联' : '关联二创'}</div>
+            <div class="insp-action" onclick="toggleArchive(${i.id})">${i.archived ? '恢复' : '归档'}</div>
+          </div>
+        </div>`).join('');
+    }
+
+    function setInspFilter(f, el) {
+      currentFilter = f;
+      document.querySelectorAll('#inspFilters .chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      renderInspiration();
+    }
+
+    function showArchived() {
+      showingArchived = !showingArchived;
+      document.querySelector('.page-head-action').textContent = showingArchived ? '返回列表' : '已归档';
+      document.getElementById('inspSearch').value = '';
+      document.querySelectorAll('#inspFilters .chip').forEach(c => c.classList.remove('active'));
+      document.querySelector('#inspFilters .chip').classList.add('active');
+      currentFilter = 'all';
+      renderInspiration();
+    }
+
+    function openInspModal() {
+      editingInspId = null;
+      selectedTag = '';
+      document.getElementById('inspModalTitle').textContent = '新增灵感';
+      document.getElementById('inspInputTitle').value = '';
+      document.getElementById('inspInputContent').value = '';
+      document.querySelectorAll('#inspTagSelect .tag-opt').forEach(t => t.classList.remove('active'));
+      showModal('inspModal');
+    }
+
+    function editInspiration(id) {
+      const i = appData.inspiration.find(x => x.id === id);
+      if (!i) return;
+      editingInspId = id;
+      selectedTag = i.tag;
+      document.getElementById('inspModalTitle').textContent = '编辑灵感';
+      document.getElementById('inspInputTitle').value = i.title;
+      document.getElementById('inspInputContent').value = i.content;
+      document.querySelectorAll('#inspTagSelect .tag-opt').forEach(t => t.classList.toggle('active', t.dataset.tag === i.tag));
+      showModal('inspModal');
+    }
+
+    function selectTag(tag, el) {
+      selectedTag = tag;
+      document.querySelectorAll('#inspTagSelect .tag-opt').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function saveInspiration() {
+      const title = document.getElementById('inspInputTitle').value.trim();
+      const content = document.getElementById('inspInputContent').value.trim();
+      if (!title) { showToast('请填写标题'); return; }
+      if (!selectedTag) { showToast('请选择标签分类'); return; }
+      const today = new Date().toISOString().slice(0, 10);
+      if (editingInspId) {
+        const i = appData.inspiration.find(x => x.id === editingInspId);
+        Object.assign(i, { title, content, tag: selectedTag });
+      } else {
+        const id = Math.max(0, ...appData.inspiration.map(x => x.id)) + 1;
+        appData.inspiration.unshift({ id, title, content, tag: selectedTag, pinned: false, archived: false, createdAt: today, linked: false });
+      }
+      saveData(); renderInspiration(); renderMe();
+      closeModal('inspModal');
+      showToast(editingInspId ? '已更新' : '灵感已保存');
+    }
+
+    function togglePin(id) {
+      const i = appData.inspiration.find(x => x.id === id);
+      i.pinned = !i.pinned; saveData(); renderInspiration();
+    }
+    function toggleLink(id) {
+      const i = appData.inspiration.find(x => x.id === id);
+      i.linked = !i.linked; saveData(); renderInspiration();
+      showToast(i.linked ? '已关联到「热点二创」' : '已取消关联');
+    }
+    function toggleArchive(id) {
+      const i = appData.inspiration.find(x => x.id === id);
+      i.archived = !i.archived; saveData(); renderInspiration();
+      showToast(i.archived ? '已归档' : '已恢复到列表');
+    }
+
+    /* ---------- 资料 ---------- */
+    function renderResources() {
+      const list = document.getElementById('resourceList');
+      let items = appData.resources.filter(r => r.folder === currentFolder);
+      if (currentFolder === '复盘档案') items.sort((a, b) => (b.createdAt < a.createdAt ? -1 : 1));
+      else items.sort((a, b) => (b.createdAt < a.createdAt ? -1 : 1));
+      if (!items.length) {
+        list.innerHTML = '<div class="empty-state"><span class="icon">📁</span>该文件夹暂无内容</div>';
+        return;
+      }
+      list.innerHTML = items.map(r => `
+        <div class="resource-card" onclick="showDetail('${escapeHtml(r.title)}', '${escapeHtml(r.content)}', '${r.createdAt}', '${r.folder}')">
+          <div class="resource-head">
+            <div class="resource-title">${escapeHtml(r.title)}</div>
+            <span class="resource-folder folder-${r.folder}">${r.folder}</span>
+          </div>
+          <div class="resource-content">${escapeHtml(r.content)}</div>
+          <div class="resource-date">${r.createdAt}</div>
+        </div>`).join('');
+    }
+
+    function setFolder(f, el) {
+      currentFolder = f;
+      document.querySelectorAll('#folderTabs .folder-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      renderResources();
+    }
+
+    function showDetail(title, content, date, folder) {
+      document.getElementById('detailTitle').textContent = title;
+      document.getElementById('detailBody').innerHTML = '<div style="margin-bottom:8px"><b>分类：</b>' + folder + '　<b>日期：</b>' + date + '</div>' + content;
+      showModal('detailModal');
+    }
+
+    /* ---------- 我的 ---------- */
+    function renderMe() {
+      const nick = appData.settings.nickname || '小雨';
+      document.getElementById('profileName').textContent = nick;
+      document.getElementById('setNickname').textContent = nick;
+      document.getElementById('streakDays').textContent = appData.stats.streakDays;
+      document.getElementById('studyHours').textContent = (appData.stats.totalStudyMinutes / 60).toFixed(1) + 'h';
+      document.getElementById('reviewCount').textContent = appData.stats.reviewCount;
+      const inspCount = appData.inspiration.filter(i => !i.archived).length;
+      document.getElementById('inspTotal').textContent = inspCount;
+    }
+
+    function saveSettings() {
+      appData.settings.notify = document.getElementById('setNotify').checked;
+      appData.settings.general = document.getElementById('setGeneral').checked;
+      saveData();
+      showToast('设置已保存');
+    }
+
+    function openNickModal() {
+      document.getElementById('nickInput').value = appData.settings.nickname || '';
+      showModal('nickModal');
+    }
+    function saveNickname() {
+      const v = document.getElementById('nickInput').value.trim();
+      if (!v) { showToast('昵称不能为空'); return; }
+      appData.settings.nickname = v;
+      saveData(); renderAll();
+      closeModal('nickModal');
+      showToast('昵称已更新');
+    }
+
+    /* ---------- 备份恢复 ---------- */
+    function exportData() {
+      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'growth-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('全部数据已导出');
+    }
+
+    function importData() { document.getElementById('fileInput').click(); }
+
+    function handleFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          pendingImport = data;
+          const inspN = (data.inspiration || []).length;
+          const resN = (data.resources || []).length;
+          const todoN = (data.todos || []).length;
+          document.getElementById('importDetail').innerHTML =
+            '备份包含：计划 ' + todoN + ' 条 · 灵感 ' + inspN + ' 条 · 资料 ' + resN + ' 条';
+          showModal('importModal');
+        } catch (err) { showToast('备份文件格式错误'); }
+      };
+      reader.readAsText(file);
+      input.value = '';
+    }
+
+    function confirmImport(mode) {
+      if (!pendingImport) return closeModal('importModal');
+      if (mode === 'replace') {
+        appData = Object.assign(defaultData(), pendingImport);
+      } else {
+        // 合并：数组按 id 去重合并，标量字段以导入覆盖
+        const mergeArr = (key) => {
+          const base = appData[key] || [];
+          const inc = pendingImport[key] || [];
+          const map = new Map(base.map(x => [x.id, x]));
+          inc.forEach(x => map.set(x.id, x));
+          return [...map.values()];
+        };
+        appData.todos = mergeArr('todos');
+        appData.inspiration = mergeArr('inspiration');
+        appData.resources = mergeArr('resources');
+        ['sport', 'learn', 'stats', 'settings'].forEach(k => {
+          if (pendingImport[k]) appData[k] = Object.assign(appData[k], pendingImport[k]);
+        });
+      }
+      saveData(); renderAll();
+      closeModal('importModal');
+      showToast(mode === 'replace' ? '已覆盖恢复全部数据' : '已合并导入数据');
+    }
+
+    /* ---------- 通用 ---------- */
+    function switchTab(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelector('.tab-item[data-page="' + page + '"]').classList.add('active');
+    }
+
+    function showModal(id) { document.getElementById(id).classList.add('show'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // 点击遮罩关闭
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', e => { if (e.target === o) o.classList.remove('show'); });
+    });
+
+    updateHeader();
+    loadData();
+    setInterval(updateHeader, 60000);
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>
