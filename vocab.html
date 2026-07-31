@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AI 英语词汇 · 百词斩式学习</title>
+<style>
+  :root{
+    --rose:#F472B6; --rose-dark:#EC4899; --rose-light:#FCE7F3; --rose-soft:#FDF2F8;
+    --pink:#F9A8D4; --bg:#FFF0F5; --bg-dots:#FBCFE8; --card:#FFFFFF;
+    --text-main:#4A044E; --text-sub:#9D174D; --text-light:#BE185D;
+    --border:#FCE7F3; --shadow:0 4px 20px rgba(236,72,153,.08); --shadow-hover:0 8px 30px rgba(236,72,153,.14);
+    --green:#86EFAC; --green-light:#DCFCE7; --blue:#93C5FD; --blue-light:#DBEAFE;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background-color:var(--bg);
+    background-image:radial-gradient(var(--bg-dots) 1.5px, transparent 1.5px);
+    background-size:22px 22px;
+    color:var(--text-main);
+    min-height:100vh;
+  }
+  .view{display:none;min-height:100vh;}
+  .view.active{display:block;}
+
+  /* ---------- 主页 ---------- */
+  .home{padding:24px 18px 48px;}
+  .brand{text-align:center;margin:14px 0 4px;}
+  .logo{width:60px;height:60px;border-radius:20px;margin:0 auto;
+    background:linear-gradient(135deg,var(--rose),var(--rose-dark));
+    display:flex;align-items:center;justify-content:center;font-size:30px;
+    box-shadow:var(--shadow-hover);}
+  .brand h1{font-size:21px;font-weight:800;color:var(--rose-dark);margin:14px 0 4px;}
+  .brand p{font-size:12.5px;color:var(--text-light);margin:0;}
+  .pwrap{margin:22px 4px 18px;}
+  .pbar{height:10px;background:var(--rose-light);border-radius:6px;overflow:hidden;}
+  .pfill{height:100%;width:0;background:linear-gradient(90deg,var(--rose),var(--rose-dark));border-radius:6px;transition:width .4s;}
+  .ptext{text-align:center;font-size:12.5px;color:var(--text-light);margin-top:8px;font-weight:600;}
+  .ptext b{color:var(--rose-dark);font-size:14px;}
+  .fcards{display:flex;flex-direction:column;gap:14px;}
+  .fcard{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:18px 16px;
+    display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s,box-shadow .15s;}
+  .fcard:active{transform:scale(.98);box-shadow:var(--shadow-hover);}
+  .fcard .ic{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto;}
+  .fcard .meta{flex:1;min-width:0;}
+  .fcard .meta .t{font-size:16px;font-weight:700;color:var(--text-main);}
+  .fcard .meta .c{font-size:12.5px;color:var(--text-light);margin-top:3px;}
+  .fcard .arrow{color:var(--pink);font-size:22px;font-weight:700;flex:0 0 auto;}
+  .fcard.start{background:linear-gradient(135deg,var(--rose),var(--rose-dark));border:0;}
+  .fcard.start .ic{background:rgba(255,255,255,.22);}
+  .fcard.start .meta .t,.fcard.start .meta .c{color:#fff;}
+  .fcard.start .arrow{color:#fff;}
+
+  /* ---------- 学习（百词斩卡片） ---------- */
+  .learn{display:none;flex-direction:column;padding:14px 14px 22px;min-height:100vh;}
+  .learn.active{display:flex;}
+  .topbar{display:flex;align-items:center;gap:12px;}
+  .back{width:38px;height:38px;border:0;border-radius:12px;background:#fff;color:var(--rose-dark);
+    font-size:18px;cursor:pointer;box-shadow:var(--shadow);flex:0 0 auto;}
+  .count{font-size:13px;color:var(--text-light);font-weight:600;flex:0 0 auto;}
+  .lbar{flex:1;height:8px;background:var(--rose-light);border-radius:6px;overflow:hidden;}
+  .lfill{height:100%;width:0;background:linear-gradient(90deg,var(--rose),var(--rose-dark));border-radius:6px;transition:width .35s;}
+  .card-area{flex:1;display:flex;align-items:center;justify-content:center;padding:14px 0;}
+  .flip{position:relative;width:100%;max-width:360px;height:440px;perspective:1400px;cursor:pointer;}
+  .face{position:absolute;inset:0;backface-visibility:hidden;transition:transform .55s;border-radius:26px;
+    background:#fff;box-shadow:0 16px 40px rgba(236,72,153,.18);display:flex;flex-direction:column;overflow:hidden;}
+  .face.back{transform:rotateY(180deg);overflow-y:auto;}
+  .flip.flipped .face.front{transform:rotateY(180deg);}
+  .flip.flipped .face.back{transform:rotateY(360deg);}
+  .imgpanel{position:relative;height:210px;background:var(--rose-soft);overflow:hidden;flex:0 0 auto;}
+  .imgpanel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .imgpanel .emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:74px;}
+  .cat-tag{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.88);color:var(--rose-dark);
+    font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600;z-index:2;}
+  .spk{position:absolute;top:10px;right:10px;width:38px;height:38px;border:0;border-radius:50%;
+    background:rgba(255,255,255,.9);color:var(--rose-dark);font-size:17px;cursor:pointer;z-index:3;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .word{flex:1;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;
+    color:var(--rose-dark);text-align:center;padding:0 16px;line-height:1.2;}
+  .hint{text-align:center;color:var(--text-light);font-size:12px;padding-bottom:20px;}
+  .phon{font-size:16px;color:var(--text-light);text-align:center;padding:0 16px 8px;font-style:italic;letter-spacing:.3px;}
+  .zh{flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:var(--text-main);padding:20px 18px 6px;text-align:center;}
+  .use{padding:0 24px 12px;font-size:14px;color:var(--text-sub);text-align:center;line-height:1.6;}
+  .listitem .ph{font-size:11px;color:var(--text-light);font-style:italic;margin-left:6px;}
+  .ex{padding:0 24px 22px;font-size:13.5px;color:var(--text-sub);text-align:center;line-height:1.55;}
+  .spk-back{position:static;width:auto;height:auto;border-radius:14px;padding:11px 0;margin:0 24px 20px;
+    display:flex;justify-content:center;font-size:14px;font-weight:700;box-shadow:none;background:var(--rose-soft);}
+  .btns{display:flex;gap:12px;padding:4px 0 8px;}
+  .btns button{flex:1;border:0;border-radius:16px;padding:16px 0;font-size:15px;font-weight:700;cursor:pointer;}
+  .btns .b-no{background:var(--rose-soft);color:var(--rose-dark);}
+  .btns .b-yes{background:linear-gradient(135deg,var(--rose),var(--rose-dark));color:#fff;box-shadow:var(--shadow-hover);}
+
+  /* ---------- 完成 ---------- */
+  .complete{display:none;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;}
+  .complete.active{display:flex;}
+  .complete .big{font-size:64px;margin-bottom:10px;}
+  .complete h2{font-size:20px;color:var(--rose-dark);margin:0 0 8px;}
+  .complete p{font-size:13.5px;color:var(--text-light);margin:0 0 26px;line-height:1.6;}
+  .complete button{border:0;border-radius:16px;padding:14px 36px;font-size:15px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,var(--rose),var(--rose-dark));color:#fff;box-shadow:var(--shadow-hover);}
+
+  /* ---------- 列表 ---------- */
+  .list{display:none;flex-direction:column;padding:14px;min-height:100vh;}
+  .list.active{display:flex;}
+  .lhead{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .lhead .lt{font-size:16px;font-weight:700;color:var(--text-main);}
+  .lbox{flex:1;overflow-y:auto;}
+  .listitem{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:10px;
+    display:flex;align-items:center;gap:12px;cursor:pointer;box-shadow:var(--shadow);}
+  .listitem:active{transform:scale(.99);}
+  .listitem .en{font-size:16px;font-weight:700;color:var(--text-main);flex:1;min-width:0;}
+  .listitem .zh{font-size:12.5px;color:var(--text-light);}
+  .listitem .st{font-size:16px;flex:0 0 auto;}
+  .listitem.done .en{color:var(--rose-dark);}
+  .listitem.done .st{color:var(--green);}
+  .empty{text-align:center;color:var(--text-light);padding:60px 0;font-size:14px;line-height:1.6;}
+</style>
+</head>
+<body>
+
+  <!-- ============ 主页 ============ -->
+  <div class="view home active" id="home">
+    <div class="brand">
+      <div class="logo">🔤</div>
+      <h1>AI 英语词汇</h1>
+      <p>学习 AI 工具 · 翻阅 AI 网页必备</p>
+    </div>
+    <div class="pwrap">
+      <div class="pbar"><div class="pfill" id="hFill"></div></div>
+      <div class="ptext">已学 <b id="hDone">0</b> / <span id="hTotal">0</span> · <span id="hPct">0%</span></div>
+    </div>
+    <div class="fcards">
+      <div class="fcard" onclick="showList('done')">
+        <div class="ic" style="background:var(--green-light)">✅</div>
+        <div class="meta"><div class="t">已完成单词</div><div class="c"><span id="hDone2">0</span> 个已掌握</div></div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="fcard" onclick="showList('todo')">
+        <div class="ic" style="background:var(--rose-light)">📚</div>
+        <div class="meta"><div class="t">未完成单词</div><div class="c"><span id="hTodo">0</span> 个待学习</div></div>
+        <div class="arrow">›</div>
+      </div>
+      <div class="fcard start" onclick="startLearn()">
+        <div class="ic">🚀</div>
+        <div class="meta"><div class="t">开始学习</div><div class="c">逐个记忆 · 配图卡片</div></div>
+        <div class="arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 学习 ============ -->
+  <div class="view learn" id="learn">
+    <div class="topbar">
+      <button class="back" onclick="goBack()">‹</button>
+      <div class="count" id="lCount">第 1 / 1 个</div>
+      <div class="lbar"><div class="lfill" id="lFill"></div></div>
+    </div>
+    <div class="card-area">
+      <div class="flip" id="flip" onclick="flipCard()">
+        <div class="face front">
+          <div class="imgpanel">
+            <span class="cat-tag" id="lCat"></span>
+            <img id="lImg" src="" onerror="this.style.display='none'">
+            <span class="emoji" id="lEmoji">🧠</span>
+            <button class="spk" onclick="event.stopPropagation();speak()">🔊</button>
+          </div>
+          <div class="word" id="lWord"></div>
+          <div class="phon" id="lPhon"></div>
+          <div class="hint">轻点卡片看释义 ↻</div>
+        </div>
+        <div class="face back">
+          <div class="zh" id="lZh"></div>
+          <div class="use" id="lUse"></div>
+          <div class="ex" id="lEx"></div>
+          <button class="spk spk-back" onclick="event.stopPropagation();speak()">🔊 朗读单词</button>
+        </div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="b-no" onclick="markLearn(false)">✗ 还没记住</button>
+      <button class="b-yes" onclick="markLearn(true)">✓ 已学会</button>
+    </div>
+  </div>
+
+  <!-- ============ 完成 ============ -->
+  <div class="view complete" id="complete">
+    <div class="big">🎉</div>
+    <h2>本轮学习完成！</h2>
+    <p id="cText">继续加油，AI 词汇越记越牢～</p>
+    <button onclick="finishBack()">返回</button>
+  </div>
+
+  <!-- ============ 列表 ============ -->
+  <div class="view list" id="list">
+    <div class="lhead">
+      <button class="back" onclick="showView('home')">‹</button>
+      <div class="lt" id="lTitle">已完成单词</div>
+    </div>
+    <div class="lbox" id="lBox"></div>
+  </div>
+
+<script>
+const CATS = {
+  basic:{label:'基础概念',emoji:'🧠',img:'img/cat_basic.png'},
+  llm:{label:'大模型',emoji:'🤖',img:'img/cat_llm.png'},
+  prompt:{label:'提示词',emoji:'✍️',img:'img/cat_prompt.png'},
+  image:{label:'图像生成',emoji:'🖼️',img:'img/cat_image.png'},
+  av:{label:'音视频',emoji:'🎬',img:'img/cat_av.png'},
+  agent:{label:'智能体',emoji:'🕸️',img:'img/cat_agent.png'},
+  tools:{label:'工具平台',emoji:'🧰',img:'img/cat_tools.png'},
+  data:{label:'数据训练',emoji:'📊',img:'img/cat_data.png'},
+  app:{label:'应用场景',emoji:'🚀',img:'img/cat_app.png'},
+  ethics:{label:'伦理安全',emoji:'⚖️',img:'img/cat_ethics.png'}
+};
+
+const VOCAB = [
+["AI","人工智能","basic","AI is reshaping every industry.","ˌeɪ ˈaɪ","AI 基础概念：人工智能（AI），帮助你理解人工智能的核心术语。"],
+["Artificial Intelligence","人工智能","basic","Same as AI.","ˌɑrtəˈfɪʃəl ˌɪnˈtɛləʤəns","AI 基础概念：人工智能（Artificial Intelligence），帮助你理解人工智能的核心术语。"],
+["Machine Learning","机器学习","basic","ML lets systems learn from data.","məˈʃin ˈlərnɪŋ","AI 基础概念：机器学习（Machine Learning），帮助你理解人工智能的核心术语。"],
+["ML","机器学习","basic","Abbreviation of Machine Learning.","ˌem ˈel","AI 基础概念：机器学习（ML），帮助你理解人工智能的核心术语。"],
+["Deep Learning","深度学习","basic","Deep learning powers image recognition.","dip ˈlərnɪŋ","AI 基础概念：深度学习（Deep Learning），帮助你理解人工智能的核心术语。"],
+["DL","深度学习","basic","Abbreviation of Deep Learning.","ˌdiː ˈel","AI 基础概念：深度学习（DL），帮助你理解人工智能的核心术语。"],
+["Neural Network","神经网络","basic","A neural network mimics the brain.","ˈnʊrəl ˈnɛtˌwərk","AI 基础概念：神经网络（Neural Network），帮助你理解人工智能的核心术语。"],
+["Neuron","神经元","basic","A single unit in a network.","ˈnʊrɑn","AI 基础概念：神经元（Neuron），帮助你理解人工智能的核心术语。"],
+["Artificial Neuron","人工神经元","basic","A math model of a brain cell.","ˌɑrtəˈfɪʃəl ˈnʊrɑn","AI 基础概念：人工神经元（Artificial Neuron），帮助你理解人工智能的核心术语。"],
+["Layer","层","basic","Stacked layers form a network.","leɪər","AI 基础概念：层（Layer），帮助你理解人工智能的核心术语。"],
+["Hidden Layer","隐藏层","basic","Layers between input and output.","ˈhɪdən leɪər","AI 基础概念：隐藏层（Hidden Layer），帮助你理解人工智能的核心术语。"],
+["Activation","激活","basic","Decides if a neuron fires.","ˌæktəˈveɪʃən","AI 基础概念：激活（Activation），帮助你理解人工智能的核心术语。"],
+["Activation Function","激活函数","basic","ReLU is a common activation function.","ˌæktəˈveɪʃən ˈfəŋkʃən","AI 基础概念：激活函数（Activation Function），帮助你理解人工智能的核心术语。"],
+["ReLU","修正线性单元","basic","A popular activation function.","relu*","AI 基础概念：修正线性单元（ReLU），帮助你理解人工智能的核心术语。"],
+["Sigmoid","Sigmoid 函数","basic","Squashes values to 0 to 1.","ˈsɪgˌmɔɪd","AI 基础概念：Sigmoid 函数（Sigmoid），帮助你理解人工智能的核心术语。"],
+["Algorithm","算法","basic","The training algorithm minimizes loss.","ˈælgərˌɪðəm","AI 基础概念：算法（Algorithm），帮助你理解人工智能的核心术语。"],
+["Model","模型","basic","We trained a model on the dataset.","ˈmɑdəl","AI 基础概念：模型（Model），帮助你理解人工智能的核心术语。"],
+["Parameter","参数","basic","The model has billions of parameters.","pərˈæmətər","AI 基础概念：参数（Parameter），帮助你理解人工智能的核心术语。"],
+["Weight","权重","basic","Weights are learned during training.","weɪt","AI 基础概念：权重（Weight），帮助你理解人工智能的核心术语。"],
+["Bias","偏置","basic","Bias shifts the activation.","baɪəs","AI 基础概念：偏置（Bias），帮助你理解人工智能的核心术语。"],
+["Inference","推理","basic","Inference runs the model on new data.","ˈɪnfərəns","AI 基础概念：推理（Inference），帮助你理解人工智能的核心术语。"],
+["Training","训练","basic","Training takes hours on a GPU.","ˈtreɪnɪŋ","AI 基础概念：训练（Training），帮助你理解人工智能的核心术语。"],
+["Feature","特征","basic","Extract features from the image.","ˈfiʧər","AI 基础概念：特征（Feature），帮助你理解人工智能的核心术语。"],
+["Feature Engineering","特征工程","basic","Crafting inputs for models.","ˈfiʧər ˈɛnʤəˈnɪrɪŋ","AI 基础概念：特征工程（Feature Engineering），帮助你理解人工智能的核心术语。"],
+["Label","标签","basic","Each sample has a label.","ˈleɪbəl","AI 基础概念：标签（Label），帮助你理解人工智能的核心术语。"],
+["Supervised Learning","监督学习","basic","Learn from labeled examples.","ˈsupərˌvaɪzd ˈlərnɪŋ","AI 基础概念：监督学习（Supervised Learning），帮助你理解人工智能的核心术语。"],
+["Unsupervised Learning","无监督学习","basic","Find structure without labels.","ənˈsupərˌvaɪzd ˈlərnɪŋ","AI 基础概念：无监督学习（Unsupervised Learning），帮助你理解人工智能的核心术语。"],
+["Semi-supervised","半监督学习","basic","Few labels plus unlabeled data.","semi-supervised*","AI 基础概念：半监督学习（Semi-supervised），帮助你理解人工智能的核心术语。"],
+["Reinforcement Learning","强化学习","basic","RL trains agents via rewards.","ˌriɪnˈfɔrsmənt ˈlərnɪŋ","AI 基础概念：强化学习（Reinforcement Learning），帮助你理解人工智能的核心术语。"],
+["Self-supervised","自监督学习","basic","Learn from the data itself.","self-supervised*","AI 基础概念：自监督学习（Self-supervised），帮助你理解人工智能的核心术语。"],
+["Transfer Learning","迁移学习","basic","Reuse a model on a new task.","ˈtrænsfər ˈlərnɪŋ","AI 基础概念：迁移学习（Transfer Learning），帮助你理解人工智能的核心术语。"],
+["Representation","表征","basic","How data is represented.","ˌrɛprəzɛnˈteɪʃən","AI 基础概念：表征（Representation），帮助你理解人工智能的核心术语。"],
+["Embedding","嵌入","basic","Word embeddings capture meaning.","embedding*","AI 基础概念：嵌入（Embedding），帮助你理解人工智能的核心术语。"],
+["Vector","向量","basic","Meaning lives in vector space.","ˈvɛktər","AI 基础概念：向量（Vector），帮助你理解人工智能的核心术语。"],
+["Tensor","张量","basic","Tensors are multi-dimensional arrays.","tensor*","AI 基础概念：张量（Tensor），帮助你理解人工智能的核心术语。"],
+["Gradient","梯度","basic","Gradient points to steepest change.","ˈgreɪdiənt","AI 基础概念：梯度（Gradient），帮助你理解人工智能的核心术语。"],
+["Backpropagation","反向传播","basic","How networks learn.","backpropagation*","AI 基础概念：反向传播（Backpropagation），帮助你理解人工智能的核心术语。"],
+["Loss","损失","basic","Lower loss means a better fit.","lɔs","AI 基础概念：损失（Loss），帮助你理解人工智能的核心术语。"],
+["Loss Function","损失函数","basic","Measures prediction error.","lɔs ˈfəŋkʃən","AI 基础概念：损失函数（Loss Function），帮助你理解人工智能的核心术语。"],
+["Cost Function","代价函数","basic","Another name for loss function.","kɔst ˈfəŋkʃən","AI 基础概念：代价函数（Cost Function），帮助你理解人工智能的核心术语。"],
+["Optimizer","优化器","basic","Updates weights each step.","optimizer*","AI 基础概念：优化器（Optimizer），帮助你理解人工智能的核心术语。"],
+["Gradient Descent","梯度下降","basic","Follow the gradient downhill.","ˈgreɪdiənt dɪˈsɛnt","AI 基础概念：梯度下降（Gradient Descent），帮助你理解人工智能的核心术语。"],
+["Learning Rate","学习率","basic","Step size of optimization.","ˈlərnɪŋ reɪt","AI 基础概念：学习率（Learning Rate），帮助你理解人工智能的核心术语。"],
+["Epoch","轮次","basic","Train for 10 epochs.","ˈɛpək","AI 基础概念：轮次（Epoch），帮助你理解人工智能的核心术语。"],
+["Batch","批次","basic","A batch of samples per step.","bæʧ","AI 基础概念：批次（Batch），帮助你理解人工智能的核心术语。"],
+["Overfitting","过拟合","basic","Overfitting hurts generalization.","overfitting*","AI 基础概念：过拟合（Overfitting），帮助你理解人工智能的核心术语。"],
+["Underfitting","欠拟合","basic","Model too simple to fit data.","underfitting*","AI 基础概念：欠拟合（Underfitting），帮助你理解人工智能的核心术语。"],
+["Generalization","泛化","basic","Performance on new data.","ˌʤɛnərəlɪˈzeɪʃən","AI 基础概念：泛化（Generalization），帮助你理解人工智能的核心术语。"],
+["Regularization","正则化","basic","Prevents overfitting.","regularization*","AI 基础概念：正则化（Regularization），帮助你理解人工智能的核心术语。"],
+["Validation","验证","basic","Tune on the validation set.","ˌvæləˈdeɪʃən","AI 基础概念：验证（Validation），帮助你理解人工智能的核心术语。"],
+["Test Set","测试集","basic","Final check on unseen data.","tɛst sɛt","AI 基础概念：测试集（Test Set），帮助你理解人工智能的核心术语。"],
+["Training Set","训练集","basic","Data used to train.","ˈtreɪnɪŋ sɛt","AI 基础概念：训练集（Training Set），帮助你理解人工智能的核心术语。"],
+["Dataset","数据集","basic","A collection of samples.","ˈdeɪtəˌsɛt","AI 基础概念：数据集（Dataset），帮助你理解人工智能的核心术语。"],
+["Data Point","数据点","basic","One example in a dataset.","ˈdætə pɔɪnt","AI 基础概念：数据点（Data Point），帮助你理解人工智能的核心术语。"],
+["Sample","样本","basic","A single training example.","ˈsæmpəl","AI 基础概念：样本（Sample），帮助你理解人工智能的核心术语。"],
+["Architecture","架构","basic","The design of a model.","ˈɑrkəˌtɛkʧər","AI 基础概念：架构（Architecture），帮助你理解人工智能的核心术语。"],
+["Compute","算力","basic","Training needs lots of compute.","kəmˈpjut","AI 基础概念：算力（Compute），帮助你理解人工智能的核心术语。"],
+["GPU","图形处理器","basic","Accelerates matrix math.","ˌdʒiː piː ˈjuː","AI 基础概念：图形处理器（GPU），帮助你理解人工智能的核心术语。"],
+["Scalability","可扩展性","basic","Handles growing load.","scalability*","AI 基础概念：可扩展性（Scalability），帮助你理解人工智能的核心术语。"],
+["LLM","大语言模型","llm","Large Language Model.","ˌel el ˈem","大语言模型相关：大语言模型（LLM），用于理解和使用 LLM 类工具。"],
+["Large Language Model","大语言模型","llm","Foundation of modern chatbots.","lɑrʤ ˈlæŋgwɪʤ ˈmɑdəl","大语言模型相关：大语言模型（Large Language Model），用于理解和使用 LLM 类工具。"],
+["GPT","生成式预训练变换器","llm","Generative Pre-trained Transformer.","ˌdʒiː piː ˈtiː","大语言模型相关：生成式预训练变换器（GPT），用于理解和使用 LLM 类工具。"],
+["Transformer","Transformer 架构","llm","Core architecture for LLMs.","trænsˈfɔrmər","大语言模型相关：Transformer 架构（Transformer），用于理解和使用 LLM 类工具。"],
+["Attention","注意力机制","llm","Lets tokens attend to each other.","əˈtɛnʃən","大语言模型相关：注意力机制（Attention），用于理解和使用 LLM 类工具。"],
+["Self-Attention","自注意力","llm","Each token watches all others.","self-attention*","大语言模型相关：自注意力（Self-Attention），用于理解和使用 LLM 类工具。"],
+["Multi-head Attention","多头注意力","llm","Attention in parallel subspaces.","multi-head* əˈtɛnʃən","大语言模型相关：多头注意力（Multi-head Attention），用于理解和使用 LLM 类工具。"],
+["Token","词元","llm","Text is split into tokens.","ˈtoʊkən","大语言模型相关：词元（Token），用于理解和使用 LLM 类工具。"],
+["Tokenizer","分词器","llm","Turns text into tokens.","tokenizer*","大语言模型相关：分词器（Tokenizer），用于理解和使用 LLM 类工具。"],
+["Tokenization","分词","llm","The process of tokenizing.","tokenization*","大语言模型相关：分词（Tokenization），用于理解和使用 LLM 类工具。"],
+["Context Window","上下文窗口","llm","Limits how much text fits.","ˈkɑntɛkst ˈwɪndoʊ","大语言模型相关：上下文窗口（Context Window），用于理解和使用 LLM 类工具。"],
+["Few-shot","少样本","llm","Give a few examples in context.","few-shot*","大语言模型相关：少样本（Few-shot），用于理解和使用 LLM 类工具。"],
+["Zero-shot","零样本","llm","Ask without examples.","zero-shot*","大语言模型相关：零样本（Zero-shot），用于理解和使用 LLM 类工具。"],
+["One-shot","单样本","llm","One example in context.","one-shot*","大语言模型相关：单样本（One-shot），用于理解和使用 LLM 类工具。"],
+["Fine-tuning","微调","llm","Adapt a model to a task.","fine-tuning*","大语言模型相关：微调（Fine-tuning），用于理解和使用 LLM 类工具。"],
+["Pre-training","预训练","llm","Train on a huge corpus first.","pre-training*","大语言模型相关：预训练（Pre-training），用于理解和使用 LLM 类工具。"],
+["Post-training","训练后","llm","Align after pre-training.","post-training*","大语言模型相关：训练后（Post-training），用于理解和使用 LLM 类工具。"],
+["Instruction Tuning","指令微调","llm","Train to follow instructions.","ˌɪnˈstrəkʃən ˈtunɪŋ","大语言模型相关：指令微调（Instruction Tuning），用于理解和使用 LLM 类工具。"],
+["RLHF","人类反馈强化学习","llm","Align models with human feedback.","ˌɑːr el eɪtʃ ˈef","大语言模型相关：人类反馈强化学习（RLHF），用于理解和使用 LLM 类工具。"],
+["Alignment","对齐","llm","Make models helpful and safe.","əˈlaɪnmənt","大语言模型相关：对齐（Alignment），用于理解和使用 LLM 类工具。"],
+["Hallucination","幻觉","llm","The model invents false facts.","həˌlusəˈneɪʃən","大语言模型相关：幻觉（Hallucination），用于理解和使用 LLM 类工具。"],
+["Grounding","事实依据","llm","Tie answers to real sources.","ˈgraʊndɪŋ","大语言模型相关：事实依据（Grounding），用于理解和使用 LLM 类工具。"],
+["Knowledge Cutoff","知识截止","llm","When training data ends.","ˈnɑlɪʤ ˈkəˌtɔf","大语言模型相关：知识截止（Knowledge Cutoff），用于理解和使用 LLM 类工具。"],
+["Chatbot","聊天机器人","llm","Talks with users.","chatbot*","大语言模型相关：聊天机器人（Chatbot），用于理解和使用 LLM 类工具。"],
+["Conversational AI","对话式 AI","llm","Natural back-and-forth chat.","ˌkɑnvərˈseɪʃənəl eɪaɪ","大语言模型相关：对话式 AI（Conversational AI），用于理解和使用 LLM 类工具。"],
+["Generative AI","生成式 AI","llm","Creates text, images, audio.","ˈʤɛnərətɪv eɪaɪ","大语言模型相关：生成式 AI（Generative AI），用于理解和使用 LLM 类工具。"],
+["Multimodal","多模态","llm","Handles text, image, audio.","multimodal*","大语言模型相关：多模态（Multimodal），用于理解和使用 LLM 类工具。"],
+["Cross-modal","跨模态","llm","Links one modality to another.","cross-modal*","大语言模型相关：跨模态（Cross-modal），用于理解和使用 LLM 类工具。"],
+["Decoder","解码器","llm","Generates tokens.","dɪˈkoʊdər","大语言模型相关：解码器（Decoder），用于理解和使用 LLM 类工具。"],
+["Encoder","编码器","llm","Reads the input.","encoder*","大语言模型相关：编码器（Encoder），用于理解和使用 LLM 类工具。"],
+["Encoder-Decoder","编码器-解码器","llm","Used in translation.","encoder-decoder*","大语言模型相关：编码器-解码器（Encoder-Decoder），用于理解和使用 LLM 类工具。"],
+["Autoregressive","自回归","llm","Predicts the next token.","autoregressive*","大语言模型相关：自回归（Autoregressive），用于理解和使用 LLM 类工具。"],
+["Next-token Prediction","下一个词预测","llm","Core LLM training task.","next-token* priˈdɪkʃən","大语言模型相关：下一个词预测（Next-token Prediction），用于理解和使用 LLM 类工具。"],
+["Perplexity","困惑度","llm","Lower is better.","pərˈplɛksəti","大语言模型相关：困惑度（Perplexity），用于理解和使用 LLM 类工具。"],
+["Temperature","温度","llm","Controls randomness.","ˈtɛmpərəʧər","大语言模型相关：温度（Temperature），用于理解和使用 LLM 类工具。"],
+["Top-p","核采样","llm","Samples from top probability mass.","top-p*","大语言模型相关：核采样（Top-p），用于理解和使用 LLM 类工具。"],
+["Top-k","Top-k 采样","llm","Pick from top k tokens.","top-k*","大语言模型相关：Top-k 采样（Top-k），用于理解和使用 LLM 类工具。"],
+["Logits","对数几率","llm","Raw model outputs.","logits*","大语言模型相关：对数几率（Logits），用于理解和使用 LLM 类工具。"],
+["Softmax","归一化","llm","Turns logits into probabilities.","softmax*","大语言模型相关：归一化（Softmax），用于理解和使用 LLM 类工具。"],
+["Embedding Model","嵌入模型","llm","Maps text to vectors.","embedding* ˈmɑdəl","大语言模型相关：嵌入模型（Embedding Model），用于理解和使用 LLM 类工具。"],
+["Semantic","语义的","llm","About meaning.","sɪˈmæntɪk","大语言模型相关：语义的（Semantic），用于理解和使用 LLM 类工具。"],
+["Paraphrase","改写","llm","Say the same thing differently.","ˈpɛrəˌfreɪz","大语言模型相关：改写（Paraphrase），用于理解和使用 LLM 类工具。"],
+["Summarization","摘要","llm","Condense long text.","summarization*","大语言模型相关：摘要（Summarization），用于理解和使用 LLM 类工具。"],
+["Translation","翻译","llm","Convert between languages.","trænzˈleɪʃən","大语言模型相关：翻译（Translation），用于理解和使用 LLM 类工具。"],
+["Question Answering","问答","llm","Answer questions from text.","kˈwɛʃən ˈænsərɪŋ","大语言模型相关：问答（Question Answering），用于理解和使用 LLM 类工具。"],
+["Text Generation","文本生成","llm","Produce fluent text.","tɛkst ˌʤɛnərˈeɪʃən","大语言模型相关：文本生成（Text Generation），用于理解和使用 LLM 类工具。"],
+["Code Generation","代码生成","llm","Write code from prompts.","koʊd ˌʤɛnərˈeɪʃən","大语言模型相关：代码生成（Code Generation），用于理解和使用 LLM 类工具。"],
+["Reasoning","推理能力","llm","Step-by-step problem solving.","ˈrizənɪŋ","大语言模型相关：推理能力（Reasoning），用于理解和使用 LLM 类工具。"],
+["Chain-of-Thought","思维链","llm","Think step by step.","chain-of-thought*","大语言模型相关：思维链（Chain-of-Thought），用于理解和使用 LLM 类工具。"],
+["In-context Learning","上下文学习","llm","Learn from examples in prompt.","in-context* ˈlərnɪŋ","大语言模型相关：上下文学习（In-context Learning），用于理解和使用 LLM 类工具。"],
+["Scaling Law","缩放定律","llm","Bigger models get better.","ˈskeɪlɪŋ lɔ","大语言模型相关：缩放定律（Scaling Law），用于理解和使用 LLM 类工具。"],
+["Emergent Ability","涌现能力","llm","Skills appear at scale.","ˈimərʤənt əˈbɪləˌti","大语言模型相关：涌现能力（Emergent Ability），用于理解和使用 LLM 类工具。"],
+["Foundation Model","基础模型","llm","Pre-trained on broad data.","faʊnˈdeɪʃən ˈmɑdəl","大语言模型相关：基础模型（Foundation Model），用于理解和使用 LLM 类工具。"],
+["Frontier Model","前沿模型","llm","State-of-the-art model.","frənˈtɪr ˈmɑdəl","大语言模型相关：前沿模型（Frontier Model），用于理解和使用 LLM 类工具。"],
+["Open-source Model","开源模型","llm","Weights are public.","ˈoʊpənˌsɔrs ˈmɑdəl","大语言模型相关：开源模型（Open-source Model），用于理解和使用 LLM 类工具。"],
+["Proprietary Model","闭源模型","llm","Kept private by a company.","prəˈpraɪəˌtɛri ˈmɑdəl","大语言模型相关：闭源模型（Proprietary Model），用于理解和使用 LLM 类工具。"],
+["Model Card","模型卡片","llm","Documents a model.","ˈmɑdəl kɑrd","大语言模型相关：模型卡片（Model Card），用于理解和使用 LLM 类工具。"],
+["Benchmark","基准测试","llm","Standardized evaluation.","ˈbɛnʧˌmɑrk","大语言模型相关：基准测试（Benchmark），用于理解和使用 LLM 类工具。"],
+["Eval","评估","llm","Evaluate model quality.","eval*","大语言模型相关：评估（Eval），用于理解和使用 LLM 类工具。"],
+["MMLU","大规模多任务理解","llm","A popular benchmark.","mmlu*","大语言模型相关：大规模多任务理解（MMLU），用于理解和使用 LLM 类工具。"],
+["Parameter Count","参数量","llm","How big the model is.","pərˈæmətər kaʊnt","大语言模型相关：参数量（Parameter Count），用于理解和使用 LLM 类工具。"],
+["Billion","十亿","llm","Unit for model size.","ˈbɪljən","大语言模型相关：十亿（Billion），用于理解和使用 LLM 类工具。"],
+["Trillion","万亿","llm","Even bigger models.","ˈtrɪljən","大语言模型相关：万亿（Trillion），用于理解和使用 LLM 类工具。"],
+["System Message","系统消息","llm","Sets the assistant role.","ˈsɪstəm ˈmɛsɪʤ","大语言模型相关：系统消息（System Message），用于理解和使用 LLM 类工具。"],
+["Chat Template","对话模板","llm","Formats chat turns.","ʧæt ˈtɛmplət","大语言模型相关：对话模板（Chat Template），用于理解和使用 LLM 类工具。"],
+["Streaming","流式输出","llm","Tokens arrive live.","ˈstrimɪŋ","大语言模型相关：流式输出（Streaming），用于理解和使用 LLM 类工具。"],
+["Caching","缓存","llm","Reuse past computations.","ˈkæʃɪŋ","大语言模型相关：缓存（Caching），用于理解和使用 LLM 类工具。"],
+["Quantization","量化","llm","Shrink model size.","quantization*","大语言模型相关：量化（Quantization），用于理解和使用 LLM 类工具。"],
+["Distillation","蒸馏","llm","Small model learns from big.","ˌdɪstəˈleɪʃən","大语言模型相关：蒸馏（Distillation），用于理解和使用 LLM 类工具。"],
+["Prompt Engineering","提示词工程","prompt","Designing effective prompts.","prɑmpt ˈɛnʤəˈnɪrɪŋ","提示词技巧：提示词工程（Prompt Engineering），帮你写出更好的 AI 指令、提升生成质量。"],
+["System Prompt","系统提示","prompt","Sets the assistant persona.","ˈsɪstəm prɑmpt","提示词技巧：系统提示（System Prompt），帮你写出更好的 AI 指令、提升生成质量。"],
+["User Prompt","用户提示","prompt","Your actual request.","ˈjuzər prɑmpt","提示词技巧：用户提示（User Prompt），帮你写出更好的 AI 指令、提升生成质量。"],
+["Instruction","指令","prompt","Tell the model what to do.","ˌɪnˈstrəkʃən","提示词技巧：指令（Instruction），帮你写出更好的 AI 指令、提升生成质量。"],
+["Context","上下文","prompt","Background you provide.","ˈkɑntɛkst","提示词技巧：上下文（Context），帮你写出更好的 AI 指令、提升生成质量。"],
+["Role","角色","prompt","Act as a helpful tutor.","roʊl","提示词技巧：角色（Role），帮你写出更好的 AI 指令、提升生成质量。"],
+["Persona","人设","prompt","A character the model plays.","pərˈsoʊnə","提示词技巧：人设（Persona），帮你写出更好的 AI 指令、提升生成质量。"],
+["Chain-of-Thought Prompting","思维链提示","prompt","Ask for step-by-step reasoning.","chain-of-thought* ˈprɑmptɪŋ","提示词技巧：思维链提示（Chain-of-Thought Prompting），帮你写出更好的 AI 指令、提升生成质量。"],
+["Zero-shot Prompting","零样本提示","prompt","No examples provided.","zero-shot* ˈprɑmptɪŋ","提示词技巧：零样本提示（Zero-shot Prompting），帮你写出更好的 AI 指令、提升生成质量。"],
+["Few-shot Prompting","少样本提示","prompt","Include demo examples.","few-shot* ˈprɑmptɪŋ","提示词技巧：少样本提示（Few-shot Prompting），帮你写出更好的 AI 指令、提升生成质量。"],
+["One-shot Prompting","单样本提示","prompt","One demo example.","one-shot* ˈprɑmptɪŋ","提示词技巧：单样本提示（One-shot Prompting），帮你写出更好的 AI 指令、提升生成质量。"],
+["Prompt Template","提示词模板","prompt","Reusable prompt with slots.","prɑmpt ˈtɛmplət","提示词技巧：提示词模板（Prompt Template），帮你写出更好的 AI 指令、提升生成质量。"],
+["Placeholder","占位符","prompt","A fill-in spot in a template.","placeholder*","提示词技巧：占位符（Placeholder），帮你写出更好的 AI 指令、提升生成质量。"],
+["Variable","变量","prompt","Dynamic value in a prompt.","ˈvɛriəbəl","提示词技巧：变量（Variable），帮你写出更好的 AI 指令、提升生成质量。"],
+["Delimiter","分隔符","prompt","Marks sections of a prompt.","delimiter*","提示词技巧：分隔符（Delimiter），帮你写出更好的 AI 指令、提升生成质量。"],
+["Constraint","约束条件","prompt","Rules the output must follow.","kənˈstreɪnt","提示词技巧：约束条件（Constraint），帮你写出更好的 AI 指令、提升生成质量。"],
+["Output Format","输出格式","prompt","Ask for JSON or a table.","ˈaʊtˌpʊt ˈfɔrˌmæt","提示词技巧：输出格式（Output Format），帮你写出更好的 AI 指令、提升生成质量。"],
+["JSON Mode","JSON 模式","prompt","Force structured JSON.","json* moʊd","提示词技巧：JSON 模式（JSON Mode），帮你写出更好的 AI 指令、提升生成质量。"],
+["Structured Output","结构化输出","prompt","Predictable machine-readable text.","ˈstrəkʧərd ˈaʊtˌpʊt","提示词技巧：结构化输出（Structured Output），帮你写出更好的 AI 指令、提升生成质量。"],
+["Negative Prompt","反向提示词","prompt","Things to avoid in output.","ˈnɛgətɪv prɑmpt","提示词技巧：反向提示词（Negative Prompt），帮你写出更好的 AI 指令、提升生成质量。"],
+["Prompt Injection","提示词注入","prompt","Malicious instruction attack.","prɑmpt ˌɪnˈʤɛkʃən","提示词技巧：提示词注入（Prompt Injection），帮你写出更好的 AI 指令、提升生成质量。"],
+["Jailbreak","越狱","prompt","Bypass safety guardrails.","jailbreak*","提示词技巧：越狱（Jailbreak），帮你写出更好的 AI 指令、提升生成质量。"],
+["Guardrail","护栏","prompt","Safety limits on outputs.","ˈgɑrˌdreɪl","提示词技巧：护栏（Guardrail），帮你写出更好的 AI 指令、提升生成质量。"],
+["Clarity","清晰性","prompt","Be clear and specific.","ˈklɛrɪti","提示词技巧：清晰性（Clarity），帮你写出更好的 AI 指令、提升生成质量。"],
+["Specificity","具体性","prompt","Narrow the request.","ˌspɛsəˈfɪsəti","提示词技巧：具体性（Specificity），帮你写出更好的 AI 指令、提升生成质量。"],
+["Iteration","迭代","prompt","Refine prompts repeatedly.","ˌɪtəˈreɪʃən","提示词技巧：迭代（Iteration），帮你写出更好的 AI 指令、提升生成质量。"],
+["Refine","精炼","prompt","Improve a prompt.","rɪˈfaɪn","提示词技巧：精炼（Refine），帮你写出更好的 AI 指令、提升生成质量。"],
+["Rewrite","重写","prompt","Rephrase for better results.","ˈriˌraɪt","提示词技巧：重写（Rewrite），帮你写出更好的 AI 指令、提升生成质量。"],
+["Brainstorm","头脑风暴","prompt","Generate many ideas.","ˈbreɪnˌstɔrm","提示词技巧：头脑风暴（Brainstorm），帮你写出更好的 AI 指令、提升生成质量。"],
+["Tone","语气","prompt","Set a friendly or formal tone.","toʊn","提示词技巧：语气（Tone），帮你写出更好的 AI 指令、提升生成质量。"],
+["Style","风格","prompt","Match a writing style.","staɪl","提示词技巧：风格（Style），帮你写出更好的 AI 指令、提升生成质量。"],
+["Verbose","冗长的","prompt","Ask for more detail.","verbose*","提示词技巧：冗长的（Verbose），帮你写出更好的 AI 指令、提升生成质量。"],
+["Concise","简洁的","prompt","Keep it short.","kənˈsaɪs","提示词技巧：简洁的（Concise），帮你写出更好的 AI 指令、提升生成质量。"],
+["Creative","有创意的","prompt","Encourage novel ideas.","kriˈeɪtɪv","提示词技巧：有创意的（Creative），帮你写出更好的 AI 指令、提升生成质量。"],
+["Formal","正式的","prompt","Use professional language.","ˈfɔrməl","提示词技巧：正式的（Formal），帮你写出更好的 AI 指令、提升生成质量。"],
+["Casual","随意的","prompt","Relaxed, everyday tone.","ˈkæʒəwəl","提示词技巧：随意的（Casual），帮你写出更好的 AI 指令、提升生成质量。"],
+["Persuasive","有说服力的","prompt","Convince the reader.","pərsˈweɪsɪv","提示词技巧：有说服力的（Persuasive），帮你写出更好的 AI 指令、提升生成质量。"],
+["Step-by-step","一步步","prompt","Show the process.","step-by-step*","提示词技巧：一步步（Step-by-step），帮你写出更好的 AI 指令、提升生成质量。"],
+["Examples","示例","prompt","Demonstrate the format.","ɪgˈzæmpəlz","提示词技巧：示例（Examples），帮你写出更好的 AI 指令、提升生成质量。"],
+["Rubric","评分标准","prompt","Define how to grade.","ˈrubrɪk","提示词技巧：评分标准（Rubric），帮你写出更好的 AI 指令、提升生成质量。"],
+["Self-consistency","自一致性","prompt","Sample many reasoning paths.","self-consistency*","提示词技巧：自一致性（Self-consistency），帮你写出更好的 AI 指令、提升生成质量。"],
+["Tree-of-Thought","思维树","prompt","Branch out reasoning.","tree-of-thought*","提示词技巧：思维树（Tree-of-Thought），帮你写出更好的 AI 指令、提升生成质量。"],
+["ReAct","推理加行动","prompt","Think then call tools.","riækt","提示词技巧：推理加行动（ReAct），帮你写出更好的 AI 指令、提升生成质量。"],
+["Meta-prompt","元提示","prompt","A prompt that writes prompts.","meta-prompt*","提示词技巧：元提示（Meta-prompt），帮你写出更好的 AI 指令、提升生成质量。"],
+["Chain Prompting","链式提示","prompt","Chain several prompts.","ʧeɪn ˈprɑmptɪŋ","提示词技巧：链式提示（Chain Prompting），帮你写出更好的 AI 指令、提升生成质量。"],
+["Prompt Library","提示词库","prompt","Save reusable prompts.","prɑmpt ˈlaɪbrɛˌri","提示词技巧：提示词库（Prompt Library），帮你写出更好的 AI 指令、提升生成质量。"],
+["Few-shot Example","少样本示例","prompt","A worked example.","few-shot* ɪgˈzæmpəl","提示词技巧：少样本示例（Few-shot Example），帮你写出更好的 AI 指令、提升生成质量。"],
+["Leading Question","引导性问题","prompt","Steer the answer.","ˈlidɪŋ kˈwɛʃən","提示词技巧：引导性问题（Leading Question），帮你写出更好的 AI 指令、提升生成质量。"],
+["Clarifying Question","澄清问题","prompt","Ask before answering.","ˈklɛrəˌfaɪɪŋ kˈwɛʃən","提示词技巧：澄清问题（Clarifying Question），帮你写出更好的 AI 指令、提升生成质量。"],
+["Output Length","输出长度","prompt","Specify word count.","ˈaʊtˌpʊt lɛŋθ","提示词技巧：输出长度（Output Length），帮你写出更好的 AI 指令、提升生成质量。"],
+["Formatting","排版","prompt","Ask for bullets or headings.","formatting*","提示词技巧：排版（Formatting），帮你写出更好的 AI 指令、提升生成质量。"],
+["Image Generation","图像生成","image","Create pictures from text.","ˈɪmɪʤ ˌʤɛnərˈeɪʃən","AI 图像相关：图像生成（Image Generation），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Text-to-Image","文生图","image","Prompt becomes an image.","text-to-image*","AI 图像相关：文生图（Text-to-Image），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Diffusion","扩散模型","image","Iterative denoising process.","dɪfˈjuʒən","AI 图像相关：扩散模型（Diffusion），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Diffusion Model","扩散模型","image","State-of-the-art for images.","dɪfˈjuʒən ˈmɑdəl","AI 图像相关：扩散模型（Diffusion Model），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Stable Diffusion","Stable Diffusion","image","Popular open model.","ˈsteɪbəl dɪfˈjuʒən","AI 图像相关：Stable Diffusion（Stable Diffusion），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Latent Space","潜空间","image","Where images are encoded.","ˈleɪtənt speɪs","AI 图像相关：潜空间（Latent Space），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Noise","噪声","image","Random starting pattern.","nɔɪz","AI 图像相关：噪声（Noise），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Denoising","去噪","image","Remove noise step by step.","denoising*","AI 图像相关：去噪（Denoising），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Sampling Steps","采样步数","image","More steps, more detail.","ˈsæmplɪŋ stɛps","AI 图像相关：采样步数（Sampling Steps），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Seed","随机种子","image","Reproduce an image.","sid","AI 图像相关：随机种子（Seed），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["CFG Scale","提示词引导","image","How closely follow the prompt.","cfg* skeɪl","AI 图像相关：提示词引导（CFG Scale），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Negative Prompt","反向提示词","image","Exclude unwanted elements.","ˈnɛgətɪv prɑmpt","AI 图像相关：反向提示词（Negative Prompt），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Upscale","放大","image","Increase resolution.","ˈəpˌskeɪl","AI 图像相关：放大（Upscale），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Super-resolution","超分辨率","image","Sharpen low-res images.","super-resolution*","AI 图像相关：超分辨率（Super-resolution），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Inpainting","局部重绘","image","Edit part of an image.","inpainting*","AI 图像相关：局部重绘（Inpainting），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Outpainting","外扩","image","Extend the canvas.","outpainting*","AI 图像相关：外扩（Outpainting），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Image-to-Image","图生图","image","Modify an existing image.","image-to-image*","AI 图像相关：图生图（Image-to-Image），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Style Transfer","风格迁移","image","Apply an art style.","staɪl ˈtrænsfər","AI 图像相关：风格迁移（Style Transfer），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["LoRA","低秩适配","image","Lightweight fine-tune.","ˈlɔrə","AI 图像相关：低秩适配（LoRA），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Checkpoint","模型检查点","image","A saved model file.","ˈʧɛkˌpɔɪnt","AI 图像相关：模型检查点（Checkpoint），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Model Weights","模型权重","image","The learned parameters.","ˈmɑdəl weɪts","AI 图像相关：模型权重（Model Weights），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["ControlNet","控制网络","image","Control pose or edges.","controlnet*","AI 图像相关：控制网络（ControlNet），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Pose","姿态","image","Body position in image.","poʊz","AI 图像相关：姿态（Pose），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Sketch","草图","image","Line drawing input.","skɛʧ","AI 图像相关：草图（Sketch），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Line Art","线稿","image","Clean outline art.","laɪn ɑrt","AI 图像相关：线稿（Line Art），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Concept Art","概念图","image","Visualize an idea.","ˈkɑnsɛpt ɑrt","AI 图像相关：概念图（Concept Art），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Illustration","插画","image","Stylized artwork.","ˌɪləˈstreɪʃən","AI 图像相关：插画（Illustration），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Photo-realistic","照片级真实","image","Looks like a photo.","photo-realistic*","AI 图像相关：照片级真实（Photo-realistic），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Render","渲染","image","Produce the final image.","ˈrɛndər","AI 图像相关：渲染（Render），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Composition","构图","image","Arrangement of elements.","ˌkɑmpəˈzɪʃən","AI 图像相关：构图（Composition），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Aspect Ratio","宽高比","image","Width to height.","ˈæˌspɛkt ˈreɪʃiˌoʊ","AI 图像相关：宽高比（Aspect Ratio），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Resolution","分辨率","image","Pixels in the image.","ˌrɛzəˈluʃən","AI 图像相关：分辨率（Resolution），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Pixel","像素","image","Smallest image unit.","ˈpɪksəl","AI 图像相关：像素（Pixel），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Megapixel","百万像素","image","One million pixels.","megapixel*","AI 图像相关：百万像素（Megapixel），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Watermark","水印","image","Marks AI-generated art.","ˈwɔtərˌmɑrk","AI 图像相关：水印（Watermark），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["AI Art","AI 绘画","image","Art made by AI.","eɪaɪ ɑrt","AI 图像相关：AI 绘画（AI Art），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Generative Art","生成艺术","image","Algorithmic artwork.","ˈʤɛnərətɪv ɑrt","AI 图像相关：生成艺术（Generative Art），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Midjourney","Midjourney","image","A leading image tool.","midjourney*","AI 图像相关：Midjourney（Midjourney），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["DALL-E","DALL-E","image","OpenAI image model.","dall-e*","AI 图像相关：DALL-E（DALL-E），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Flux","Flux","image","A fast image model.","fləks","AI 图像相关：Flux（Flux），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["ComfyUI","ComfyUI","image","Node-based interface.","comfyui*","AI 图像相关：ComfyUI（ComfyUI），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Prompt Builder","提示词构建器","image","Assemble image prompts.","prɑmpt ˈbɪldər","AI 图像相关：提示词构建器（Prompt Builder），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Reference Image","参考图","image","Guide the style.","ˈrɛfərəns ˈɪmɪʤ","AI 图像相关：参考图（Reference Image），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Depth Map","深度图","image","Controls 3D layout.","dɛpθ mæp","AI 图像相关：深度图（Depth Map），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Face Restoration","人脸修复","image","Fix blurry faces.","feɪs ˌrɛstərˈeɪʃən","AI 图像相关：人脸修复（Face Restoration），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Background Removal","背景移除","image","Cut out the subject.","ˈbækˌgraʊnd rɪˈmuvəl","AI 图像相关：背景移除（Background Removal），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Color Palette","配色","image","The color scheme.","ˈkələr ˈpælət","AI 图像相关：配色（Color Palette），用于 Midjourney / Stable Diffusion 等画图工具。"],
+["Text-to-Speech","文本转语音","av","Read text aloud.","text-to-speech*","音视频生成：文本转语音（Text-to-Speech），用于语音克隆、配音、视频生成类工具。"],
+["TTS","文本转语音","av","Text to Speech.","ˌtiː tiː ˈes","音视频生成：文本转语音（TTS），用于语音克隆、配音、视频生成类工具。"],
+["Speech Synthesis","语音合成","av","Generate spoken audio.","spiʧ ˈsɪnθəsəs","音视频生成：语音合成（Speech Synthesis），用于语音克隆、配音、视频生成类工具。"],
+["Voice Clone","声音克隆","av","Copy a real voice.","vɔɪs kloʊn","音视频生成：声音克隆（Voice Clone），用于语音克隆、配音、视频生成类工具。"],
+["Voiceover","配音","av","Spoken narration.","ˈvɔɪˌsoʊvər","音视频生成：配音（Voiceover），用于语音克隆、配音、视频生成类工具。"],
+["Dubbing","译制","av","Translate and voice a video.","ˈdəbɪŋ","音视频生成：译制（Dubbing），用于语音克隆、配音、视频生成类工具。"],
+["Lip-sync","口型同步","av","Match audio to mouth.","lip-sync*","音视频生成：口型同步（Lip-sync），用于语音克隆、配音、视频生成类工具。"],
+["Audio Generation","音频生成","av","Make music or sound.","ˈɑdiˌoʊ ˌʤɛnərˈeɪʃən","音视频生成：音频生成（Audio Generation），用于语音克隆、配音、视频生成类工具。"],
+["Music Generation","音乐生成","av","Compose with AI.","mˈjuzɪk ˌʤɛnərˈeɪʃən","音视频生成：音乐生成（Music Generation），用于语音克隆、配音、视频生成类工具。"],
+["Sound Effect","音效","av","Generated effects.","saʊnd ˈifɛkt","音视频生成：音效（Sound Effect），用于语音克隆、配音、视频生成类工具。"],
+["Voice Model","声音模型","av","Trained on one speaker.","vɔɪs ˈmɑdəl","音视频生成：声音模型（Voice Model），用于语音克隆、配音、视频生成类工具。"],
+["Speaker","说话人","av","A voice in audio.","ˈspikər","音视频生成：说话人（Speaker），用于语音克隆、配音、视频生成类工具。"],
+["Transcription","转写","av","Write down spoken words.","ˌtrænˈskrɪpʃən","音视频生成：转写（Transcription），用于语音克隆、配音、视频生成类工具。"],
+["Speech-to-Text","语音转文本","av","Convert speech to text.","speech-to-text*","音视频生成：语音转文本（Speech-to-Text），用于语音克隆、配音、视频生成类工具。"],
+["STT","语音转文本","av","Speech to Text.","ˌes tiː ˈtiː","音视频生成：语音转文本（STT），用于语音克隆、配音、视频生成类工具。"],
+["ASR","自动语音识别","av","Automatic speech recognition.","ˌeɪ es ˈɑːr","音视频生成：自动语音识别（ASR），用于语音克隆、配音、视频生成类工具。"],
+["Whisper","Whisper","av","OpenAI speech model.","ˈwɪspər","音视频生成：Whisper（Whisper），用于语音克隆、配音、视频生成类工具。"],
+["Video Generation","视频生成","av","Make video from text.","ˈvɪdioʊ ˌʤɛnərˈeɪʃən","音视频生成：视频生成（Video Generation），用于语音克隆、配音、视频生成类工具。"],
+["Text-to-Video","文生视频","av","Prompt becomes video.","text-to-video*","音视频生成：文生视频（Text-to-Video），用于语音克隆、配音、视频生成类工具。"],
+["Image-to-Video","图生视频","av","Animate a still image.","image-to-video*","音视频生成：图生视频（Image-to-Video），用于语音克隆、配音、视频生成类工具。"],
+["Animation","动画","av","Moving visuals.","ˌænəˈmeɪʃən","音视频生成：动画（Animation），用于语音克隆、配音、视频生成类工具。"],
+["Frame","帧","av","One still in video.","freɪm","音视频生成：帧（Frame），用于语音克隆、配音、视频生成类工具。"],
+["FPS","帧率","av","Frames per second.","fps*","音视频生成：帧率（FPS），用于语音克隆、配音、视频生成类工具。"],
+["Duration","时长","av","Length of a clip.","ˈdʊˈreɪʃən","音视频生成：时长（Duration），用于语音克隆、配音、视频生成类工具。"],
+["Motion","运动","av","How things move.","ˈmoʊʃən","音视频生成：运动（Motion），用于语音克隆、配音、视频生成类工具。"],
+["Consistency","一致性","av","Stable subjects across frames.","kənˈsɪstənsi","音视频生成：一致性（Consistency），用于语音克隆、配音、视频生成类工具。"],
+["Scene","场景","av","A shot or setting.","sin","音视频生成：场景（Scene），用于语音克隆、配音、视频生成类工具。"],
+["Storyboard","分镜","av","Plan the shots.","ˈstɔriˌbɔrd","音视频生成：分镜（Storyboard），用于语音克隆、配音、视频生成类工具。"],
+["Subtitle","字幕","av","Text on screen.","ˈsəbˌtaɪtəl","音视频生成：字幕（Subtitle），用于语音克隆、配音、视频生成类工具。"],
+["Caption","说明文字","av","Description of media.","ˈkæpʃən","音视频生成：说明文字（Caption），用于语音克隆、配音、视频生成类工具。"],
+["Podcast","播客","av","Audio talk show.","ˈpɔdˌkæst","音视频生成：播客（Podcast），用于语音克隆、配音、视频生成类工具。"],
+["Narrator","旁白","av","Voice that tells story.","ˈnɛreɪtər","音视频生成：旁白（Narrator），用于语音克隆、配音、视频生成类工具。"],
+["Mouth Movement","嘴部动作","av","Drives lip-sync.","maʊθ ˈmuvmənt","音视频生成：嘴部动作（Mouth Movement），用于语音克隆、配音、视频生成类工具。"],
+["Audio Track","音轨","av","Separate sound layer.","ˈɑdiˌoʊ træk","音视频生成：音轨（Audio Track），用于语音克隆、配音、视频生成类工具。"],
+["Reverb","混响","av","Sense of space in audio.","riˈvərb","音视频生成：混响（Reverb），用于语音克隆、配音、视频生成类工具。"],
+["Beat","节拍","av","Rhythm for music.","bit","音视频生成：节拍（Beat），用于语音克隆、配音、视频生成类工具。"],
+["Tempo","速度","av","Pace of music.","ˈtɛmˌpoʊ","音视频生成：速度（Tempo），用于语音克隆、配音、视频生成类工具。"],
+["Instrument","乐器","av","Synthesized instrument.","ˈɪnstrəmənt","音视频生成：乐器（Instrument），用于语音克隆、配音、视频生成类工具。"],
+["Vocal","人声","av","Sung or spoken voice.","ˈvoʊkəl","音视频生成：人声（Vocal），用于语音克隆、配音、视频生成类工具。"],
+["Soundscape","声景","av","Ambient audio.","soundscape*","音视频生成：声景（Soundscape），用于语音克隆、配音、视频生成类工具。"],
+["Agent","智能体","agent","Acts autonomously to reach goals.","ˈeɪʤənt","智能体相关：智能体（Agent），用于把多个 AI 步骤自动串成任务流。"],
+["AI Agent","AI 智能体","agent","LLM plus tools and memory.","eɪaɪ ˈeɪʤənt","智能体相关：AI 智能体（AI Agent），用于把多个 AI 步骤自动串成任务流。"],
+["Autonomous","自主的","agent","Works without constant input.","ɔˈtɑnəməs","智能体相关：自主的（Autonomous），用于把多个 AI 步骤自动串成任务流。"],
+["Workflow","工作流","agent","A sequence of steps.","ˈwərkˌfloʊ","智能体相关：工作流（Workflow），用于把多个 AI 步骤自动串成任务流。"],
+["Tool Use","工具调用","agent","Model calls external tools.","tul juz","智能体相关：工具调用（Tool Use），用于把多个 AI 步骤自动串成任务流。"],
+["Function Calling","函数调用","agent","Invoke code from a prompt.","ˈfəŋkʃən ˈkɔlɪŋ","智能体相关：函数调用（Function Calling），用于把多个 AI 步骤自动串成任务流。"],
+["API Call","API 调用","agent","Request data from a service.","api* kɔl","智能体相关：API 调用（API Call），用于把多个 AI 步骤自动串成任务流。"],
+["Tool","工具","agent","A capability the agent uses.","tul","智能体相关：工具（Tool），用于把多个 AI 步骤自动串成任务流。"],
+["Plugin","插件","agent","Add-on functionality.","plugin*","智能体相关：插件（Plugin），用于把多个 AI 步骤自动串成任务流。"],
+["MCP","模型上下文协议","agent","Standard for tool access.","mcp*","智能体相关：模型上下文协议（MCP），用于把多个 AI 步骤自动串成任务流。"],
+["RAG","检索增强生成","agent","Ground answers in docs.","ˌɑːr eɪ ˈdʒiː","智能体相关：检索增强生成（RAG），用于把多个 AI 步骤自动串成任务流。"],
+["Retrieval","检索","agent","Fetch relevant context.","rɪˈtrivəl","智能体相关：检索（Retrieval），用于把多个 AI 步骤自动串成任务流。"],
+["Knowledge Base","知识库","agent","Stored facts to retrieve.","ˈnɑlɪʤ beɪs","智能体相关：知识库（Knowledge Base），用于把多个 AI 步骤自动串成任务流。"],
+["Vector Database","向量数据库","agent","Search by meaning.","ˈvɛktər ˈdætəˌbeɪs","智能体相关：向量数据库（Vector Database），用于把多个 AI 步骤自动串成任务流。"],
+["Vector Store","向量存储","agent","Saves embeddings.","ˈvɛktər stɔr","智能体相关：向量存储（Vector Store），用于把多个 AI 步骤自动串成任务流。"],
+["Embedding Search","嵌入检索","agent","Find similar vectors.","embedding* sərʧ","智能体相关：嵌入检索（Embedding Search），用于把多个 AI 步骤自动串成任务流。"],
+["Similarity","相似度","agent","How close two vectors are.","ˌsɪməˈlɛrəti","智能体相关：相似度（Similarity），用于把多个 AI 步骤自动串成任务流。"],
+["Cosine Similarity","余弦相似度","agent","Common similarity metric.","cosine* ˌsɪməˈlɛrəti","智能体相关：余弦相似度（Cosine Similarity），用于把多个 AI 步骤自动串成任务流。"],
+["Orchestration","编排","agent","Coordinate many steps.","ˌɔrkəˈstreɪʃən","智能体相关：编排（Orchestration），用于把多个 AI 步骤自动串成任务流。"],
+["Multi-agent","多智能体","agent","Several agents collaborate.","multi-agent*","智能体相关：多智能体（Multi-agent），用于把多个 AI 步骤自动串成任务流。"],
+["Orchestrator","编排器","agent","Directs the agents.","orchestrator*","智能体相关：编排器（Orchestrator），用于把多个 AI 步骤自动串成任务流。"],
+["Planning","规划","agent","Break goals into steps.","ˈplænɪŋ","智能体相关：规划（Planning），用于把多个 AI 步骤自动串成任务流。"],
+["Memory","记忆","agent","Stores past context.","ˈmɛməri","智能体相关：记忆（Memory），用于把多个 AI 步骤自动串成任务流。"],
+["Long-term Memory","长期记忆","agent","Persisted across sessions.","ˈlɔŋˈtərm ˈmɛməri","智能体相关：长期记忆（Long-term Memory），用于把多个 AI 步骤自动串成任务流。"],
+["Short-term Memory","短期记忆","agent","Within one conversation.","ˌʃɔrtˈtərm ˈmɛməri","智能体相关：短期记忆（Short-term Memory），用于把多个 AI 步骤自动串成任务流。"],
+["Context Management","上下文管理","agent","Keep relevant info.","ˈkɑntɛkst ˈmænɪʤmənt","智能体相关：上下文管理（Context Management），用于把多个 AI 步骤自动串成任务流。"],
+["Task Decomposition","任务分解","agent","Split a big task.","tæsk ˌdikəmpəˈzɪʃən","智能体相关：任务分解（Task Decomposition），用于把多个 AI 步骤自动串成任务流。"],
+["Reflection","反思","agent","Agent reviews its work.","rɪˈflɛkʃən","智能体相关：反思（Reflection），用于把多个 AI 步骤自动串成任务流。"],
+["Self-correction","自我修正","agent","Fix its own mistakes.","self-correction*","智能体相关：自我修正（Self-correction），用于把多个 AI 步骤自动串成任务流。"],
+["Loop","循环","agent","Repeat until done.","lup","智能体相关：循环（Loop），用于把多个 AI 步骤自动串成任务流。"],
+["Human-in-the-loop","人在回路","agent","A human approves steps.","human-in-the-loop*","智能体相关：人在回路（Human-in-the-loop），用于把多个 AI 步骤自动串成任务流。"],
+["Autopilot","自动模式","agent","Fully automatic run.","ˈɔtoʊˌpaɪlət","智能体相关：自动模式（Autopilot），用于把多个 AI 步骤自动串成任务流。"],
+["Copilot","副驾驶","agent","Assists a human.","ˈkoʊpaɪlət","智能体相关：副驾驶（Copilot），用于把多个 AI 步骤自动串成任务流。"],
+["Assistant","助手","agent","Helps with tasks.","əˈsɪstənt","智能体相关：助手（Assistant），用于把多个 AI 步骤自动串成任务流。"],
+["Automation","自动化","agent","Do tasks without humans.","ɔtəˈmeɪʃən","智能体相关：自动化（Automation），用于把多个 AI 步骤自动串成任务流。"],
+["Trigger","触发器","agent","Starts a workflow.","ˈtrɪgər","智能体相关：触发器（Trigger），用于把多个 AI 步骤自动串成任务流。"],
+["Webhook","Webhook","agent","Event callback.","webhook*","智能体相关：Webhook（Webhook），用于把多个 AI 步骤自动串成任务流。"],
+["Scheduler","调度器","agent","Runs on a schedule.","ˈskɛʤʊlər","智能体相关：调度器（Scheduler），用于把多个 AI 步骤自动串成任务流。"],
+["Goal","目标","agent","What the agent seeks.","goʊl","智能体相关：目标（Goal），用于把多个 AI 步骤自动串成任务流。"],
+["Action","动作","agent","A step the agent takes.","ˈækʃən","智能体相关：动作（Action），用于把多个 AI 步骤自动串成任务流。"],
+["Observation","观察","agent","Result the agent sees.","ˌɑbzərˈveɪʃən","智能体相关：观察（Observation），用于把多个 AI 步骤自动串成任务流。"],
+["State","状态","agent","Current situation.","steɪt","智能体相关：状态（State），用于把多个 AI 步骤自动串成任务流。"],
+["Tool Schema","工具描述","agent","Describes a tool to the model.","tul ˈskimə","智能体相关：工具描述（Tool Schema），用于把多个 AI 步骤自动串成任务流。"],
+["Retry","重试","agent","Try again on failure.","riˈtraɪ","智能体相关：重试（Retry），用于把多个 AI 步骤自动串成任务流。"],
+["Fallback","兜底","agent","Plan B when stuck.","ˈfɔlˌbæk","智能体相关：兜底（Fallback），用于把多个 AI 步骤自动串成任务流。"],
+["API","应用程序接口","tools","Lets apps talk to services.","ˌeɪ piː ˈaɪ","开发 / 接口：应用程序接口（API），用于接入、调用和集成 AI 能力。"],
+["SDK","软件开发工具包","tools","Code to use a service.","ˌes diː ˈkeɪ","开发 / 接口：软件开发工具包（SDK），用于接入、调用和集成 AI 能力。"],
+["REST","表述性状态转移","tools","Common API style.","rɛst","开发 / 接口：表述性状态转移（REST），用于接入、调用和集成 AI 能力。"],
+["Endpoint","接口端点","tools","A specific API URL.","ˈɛndˌpɔɪnt","开发 / 接口：接口端点（Endpoint），用于接入、调用和集成 AI 能力。"],
+["Request","请求","tools","Ask an API for data.","rɪkˈwɛst","开发 / 接口：请求（Request），用于接入、调用和集成 AI 能力。"],
+["Response","响应","tools","What the API returns.","rɪˈspɑns","开发 / 接口：响应（Response），用于接入、调用和集成 AI 能力。"],
+["HTTP","超文本传输协议","tools","Web communication.","http*","开发 / 接口：超文本传输协议（HTTP），用于接入、调用和集成 AI 能力。"],
+["JSON","JSON 格式","tools","Lightweight data format.","ˈdʒeɪ sən","开发 / 接口：JSON 格式（JSON），用于接入、调用和集成 AI 能力。"],
+["API Key","API 密钥","tools","Secret to use an API.","api* ki","开发 / 接口：API 密钥（API Key），用于接入、调用和集成 AI 能力。"],
+["Authentication","鉴权","tools","Prove who you are.","ɔˌθɛntəˈkeɪʃən","开发 / 接口：鉴权（Authentication），用于接入、调用和集成 AI 能力。"],
+["Authorization","授权","tools","What you may access.","ˌɔθərəˈzeɪʃən","开发 / 接口：授权（Authorization），用于接入、调用和集成 AI 能力。"],
+["Rate Limit","速率限制","tools","Max calls per time.","reɪt ˈlɪmət","开发 / 接口：速率限制（Rate Limit），用于接入、调用和集成 AI 能力。"],
+["Quota","配额","tools","Allowed usage amount.","kˈwoʊtə","开发 / 接口：配额（Quota），用于接入、调用和集成 AI 能力。"],
+["Latency","延迟","tools","Time to get a response.","ˈleɪtənsi","开发 / 接口：延迟（Latency），用于接入、调用和集成 AI 能力。"],
+["Throughput","吞吐量","tools","Work done per time.","θˈruˌpʊt","开发 / 接口：吞吐量（Throughput），用于接入、调用和集成 AI 能力。"],
+["Cloud","云端","tools","Remote computing.","klaʊd","开发 / 接口：云端（Cloud），用于接入、调用和集成 AI 能力。"],
+["Server","服务器","tools","Runs the service.","ˈsərvər","开发 / 接口：服务器（Server），用于接入、调用和集成 AI 能力。"],
+["Edge","边缘","tools","Compute near the user.","ɛʤ","开发 / 接口：边缘（Edge），用于接入、调用和集成 AI 能力。"],
+["On-device","设备端","tools","Runs on your phone.","on-device*","开发 / 接口：设备端（On-device），用于接入、调用和集成 AI 能力。"],
+["OpenAI","OpenAI","tools","Leading AI platform.","openai*","开发 / 接口：OpenAI（OpenAI），用于接入、调用和集成 AI 能力。"],
+["Anthropic","Anthropic","tools","Maker of Claude.","anthropic*","开发 / 接口：Anthropic（Anthropic），用于接入、调用和集成 AI 能力。"],
+["Claude","Claude","tools","Anthropic model.","klɔd","开发 / 接口：Claude（Claude），用于接入、调用和集成 AI 能力。"],
+["Gemini","Gemini","tools","Google model.","ˈʤɛməˌni","开发 / 接口：Gemini（Gemini），用于接入、调用和集成 AI 能力。"],
+["Hugging Face","Hugging Face","tools","Model community.","ˈhəgɪŋ feɪs","开发 / 接口：Hugging Face（Hugging Face），用于接入、调用和集成 AI 能力。"],
+["Model Hub","模型仓库","tools","Hosts open models.","ˈmɑdəl həb","开发 / 接口：模型仓库（Model Hub），用于接入、调用和集成 AI 能力。"],
+["Notebook","笔记本","tools","Interactive coding.","ˈnoʊtˌbʊk","开发 / 接口：笔记本（Notebook），用于接入、调用和集成 AI 能力。"],
+["Colab","Colab","tools","Google free notebook.","ˈkoʊˈlæb","开发 / 接口：Colab（Colab），用于接入、调用和集成 AI 能力。"],
+["Pipeline","流水线","tools","Chain of processing.","ˈpaɪˌplaɪn","开发 / 接口：流水线（Pipeline），用于接入、调用和集成 AI 能力。"],
+["Deployment","部署","tools","Ship a model to users.","dɪˈplɔɪmənt","开发 / 接口：部署（Deployment），用于接入、调用和集成 AI 能力。"],
+["Hosting","托管","tools","Serve an app online.","ˈhoʊstɪŋ","开发 / 接口：托管（Hosting），用于接入、调用和集成 AI 能力。"],
+["Platform","平台","tools","Where you build AI.","ˈplætˌfɔrm","开发 / 接口：平台（Platform），用于接入、调用和集成 AI 能力。"],
+["Dashboard","仪表盘","tools","Monitor your usage.","ˈdæʃˌbɔrd","开发 / 接口：仪表盘（Dashboard），用于接入、调用和集成 AI 能力。"],
+["Integration","集成","tools","Connect two systems.","ˌɪnəˈgreɪʃən","开发 / 接口：集成（Integration），用于接入、调用和集成 AI 能力。"],
+["Extension","扩展","tools","Add features to a browser.","ɪkˈstɛnʃən","开发 / 接口：扩展（Extension），用于接入、调用和集成 AI 能力。"],
+["Add-on","附加组件","tools","Extra capability.","add-on*","开发 / 接口：附加组件（Add-on），用于接入、调用和集成 AI 能力。"],
+["No-code","无代码","tools","Build without coding.","no-code*","开发 / 接口：无代码（No-code），用于接入、调用和集成 AI 能力。"],
+["Low-code","低代码","tools","Minimal coding.","low-code*","开发 / 接口：低代码（Low-code），用于接入、调用和集成 AI 能力。"],
+["Open Source","开源","tools","Public source code.","ˈoʊpən sɔrs","开发 / 接口：开源（Open Source），用于接入、调用和集成 AI 能力。"],
+["License","许可证","tools","Legal use terms.","ˈlaɪsəns","开发 / 接口：许可证（License），用于接入、调用和集成 AI 能力。"],
+["Repository","代码仓库","tools","Stores project code.","riˈpɑzəˌtɔri","开发 / 接口：代码仓库（Repository），用于接入、调用和集成 AI 能力。"],
+["CLI","命令行工具","tools","Type commands to run.","cli*","开发 / 接口：命令行工具（CLI），用于接入、调用和集成 AI 能力。"],
+["Terminal","终端","tools","Text interface to a computer.","ˈtərmənəl","开发 / 接口：终端（Terminal），用于接入、调用和集成 AI 能力。"],
+["Environment","环境","tools","Setup for running code.","ɪnˈvaɪrənmənt","开发 / 接口：环境（Environment），用于接入、调用和集成 AI 能力。"],
+["Sandbox","沙箱","tools","Isolated safe space.","ˈsændˌbɑks","开发 / 接口：沙箱（Sandbox），用于接入、调用和集成 AI 能力。"],
+["Token (auth)","令牌","tools","Proof of access.","ˈtoʊkən (ɔθ)","开发 / 接口：令牌（Token (auth)），用于接入、调用和集成 AI 能力。"],
+["Web UI","网页界面","tools","Browser-based app.","wɛb ui*","开发 / 接口：网页界面（Web UI），用于接入、调用和集成 AI 能力。"],
+["App","应用","tools","A finished product.","æp","开发 / 接口：应用（App），用于接入、调用和集成 AI 能力。"],
+["Beta","测试版","tools","Early public release.","ˈbeɪtə","开发 / 接口：测试版（Beta），用于接入、调用和集成 AI 能力。"],
+["Changelog","更新日志","tools","What changed.","changelog*","开发 / 接口：更新日志（Changelog），用于接入、调用和集成 AI 能力。"],
+["Documentation","文档","tools","How to use it.","ˌdɑkjəmɛnˈteɪʃən","开发 / 接口：文档（Documentation），用于接入、调用和集成 AI 能力。"],
+["Data","数据","data","The fuel of AI.","ˈdætə","数据与训练：数据（Data），用于模型训练、微调与数据分析。"],
+["Corpus","语料库","data","A big text collection.","ˈkɔrpəs","数据与训练：语料库（Corpus），用于模型训练、微调与数据分析。"],
+["Training Data","训练数据","data","Used to learn.","ˈtreɪnɪŋ ˈdætə","数据与训练：训练数据（Training Data），用于模型训练、微调与数据分析。"],
+["Validation Set","验证集","data","Tune the model.","ˌvæləˈdeɪʃən sɛt","数据与训练：验证集（Validation Set），用于模型训练、微调与数据分析。"],
+["Labeled Data","标注数据","data","Comes with answers.","ˈleɪbəld ˈdætə","数据与训练：标注数据（Labeled Data），用于模型训练、微调与数据分析。"],
+["Annotation","标注","data","Tagging data by hand.","ˌænəˈteɪʃən","数据与训练：标注（Annotation），用于模型训练、微调与数据分析。"],
+["Annotator","标注员","data","Person who labels data.","ˌænəˈteɪtər","数据与训练：标注员（Annotator），用于模型训练、微调与数据分析。"],
+["Data Cleaning","数据清洗","data","Fix messy data.","ˈdætə ˈklinɪŋ","数据与训练：数据清洗（Data Cleaning），用于模型训练、微调与数据分析。"],
+["Preprocessing","预处理","data","Prepare data for training.","preprocessing*","数据与训练：预处理（Preprocessing），用于模型训练、微调与数据分析。"],
+["Augmentation","数据增强","data","Create more examples.","ˌɑgmɛnˈteɪʃən","数据与训练：数据增强（Augmentation），用于模型训练、微调与数据分析。"],
+["Synthetic Data","合成数据","data","Made by AI.","sɪnˈθɛtɪk ˈdætə","数据与训练：合成数据（Synthetic Data），用于模型训练、微调与数据分析。"],
+["Data Pipeline","数据流水线","data","Automated data flow.","ˈdætə ˈpaɪˌplaɪn","数据与训练：数据流水线（Data Pipeline），用于模型训练、微调与数据分析。"],
+["Batch Size","批量大小","data","Samples per step.","bæʧ saɪz","数据与训练：批量大小（Batch Size），用于模型训练、微调与数据分析。"],
+["Adam","Adam 优化器","data","Popular optimizer.","ˈædəm","数据与训练：Adam 优化器（Adam），用于模型训练、微调与数据分析。"],
+["SGD","随机梯度下降","data","Classic optimizer.","sgd*","数据与训练：随机梯度下降（SGD），用于模型训练、微调与数据分析。"],
+["Dropout","丢弃法","data","Randomly drop units.","ˈdrɑˌpaʊt","数据与训练：丢弃法（Dropout），用于模型训练、微调与数据分析。"],
+["Normalization","归一化","data","Scale values.","ˌnɔrməlɪˈzeɪʃən","数据与训练：归一化（Normalization），用于模型训练、微调与数据分析。"],
+["Batch Norm","批归一化","data","Normalize per batch.","bæʧ nɔrm","数据与训练：批归一化（Batch Norm），用于模型训练、微调与数据分析。"],
+["Layer Norm","层归一化","data","Normalize per layer.","leɪər nɔrm","数据与训练：层归一化（Layer Norm），用于模型训练、微调与数据分析。"],
+["Early Stopping","早停","data","Stop when it stalls.","ˈərli ˈstɑpɪŋ","数据与训练：早停（Early Stopping），用于模型训练、微调与数据分析。"],
+["Convergence","收敛","data","Training settles.","kənˈvərʤəns","数据与训练：收敛（Convergence），用于模型训练、微调与数据分析。"],
+["Gradient Clipping","梯度裁剪","data","Cap big gradients.","ˈgreɪdiənt ˈklɪpɪŋ","数据与训练：梯度裁剪（Gradient Clipping），用于模型训练、微调与数据分析。"],
+["Vanishing Gradient","梯度消失","data","Gradients shrink to zero.","ˈvænɪʃɪŋ ˈgreɪdiənt","数据与训练：梯度消失（Vanishing Gradient），用于模型训练、微调与数据分析。"],
+["Exploding Gradient","梯度爆炸","data","Gradients blow up.","ɪkˈsploʊdɪŋ ˈgreɪdiənt","数据与训练：梯度爆炸（Exploding Gradient），用于模型训练、微调与数据分析。"],
+["Distillation","蒸馏","data","Small model from big.","ˌdɪstəˈleɪʃən","数据与训练：蒸馏（Distillation），用于模型训练、微调与数据分析。"],
+["Pruning","剪枝","data","Remove unused weights.","ˈprunɪŋ","数据与训练：剪枝（Pruning），用于模型训练、微调与数据分析。"],
+["Compression","压缩","data","Shrink the model.","kəmˈprɛʃən","数据与训练：压缩（Compression），用于模型训练、微调与数据分析。"],
+["Inference Optimization","推理优化","data","Speed up predictions.","ˈɪnfərəns ɑptɪmɪˈzeɪʃən","数据与训练：推理优化（Inference Optimization），用于模型训练、微调与数据分析。"],
+["Distributed Training","分布式训练","data","Train across machines.","dɪˈstrɪbjətəd ˈtreɪnɪŋ","数据与训练：分布式训练（Distributed Training），用于模型训练、微调与数据分析。"],
+["Parallelism","并行","data","Do work simultaneously.","ˈpɛrəˌlɛˌlɪzəm","数据与训练：并行（Parallelism），用于模型训练、微调与数据分析。"],
+["Data Parallel","数据并行","data","Split data across GPUs.","ˈdætə ˈpɛrəˌlɛl","数据与训练：数据并行（Data Parallel），用于模型训练、微调与数据分析。"],
+["Model Parallel","模型并行","data","Split model across GPUs.","ˈmɑdəl ˈpɛrəˌlɛl","数据与训练：模型并行（Model Parallel），用于模型训练、微调与数据分析。"],
+["Hyperparameter","超参数","data","Set before training.","hyperparameter*","数据与训练：超参数（Hyperparameter），用于模型训练、微调与数据分析。"],
+["Hyperparameter Tuning","超参数调优","data","Find best settings.","hyperparameter* ˈtunɪŋ","数据与训练：超参数调优（Hyperparameter Tuning），用于模型训练、微调与数据分析。"],
+["Grid Search","网格搜索","data","Try all combos.","grɪd sərʧ","数据与训练：网格搜索（Grid Search），用于模型训练、微调与数据分析。"],
+["Random Search","随机搜索","data","Sample settings randomly.","ˈrændəm sərʧ","数据与训练：随机搜索（Random Search），用于模型训练、微调与数据分析。"],
+["Cross-validation","交叉验证","data","Robust eval method.","cross-validation*","数据与训练：交叉验证（Cross-validation），用于模型训练、微调与数据分析。"],
+["Metrics","指标","data","How we measure success.","ˈmɛtrɪks","数据与训练：指标（Metrics），用于模型训练、微调与数据分析。"],
+["Accuracy","准确率","data","Fraction correct.","ˈækjərəsi","数据与训练：准确率（Accuracy），用于模型训练、微调与数据分析。"],
+["Precision","精确率","data","Of positives, how many right.","priˈsɪʒən","数据与训练：精确率（Precision），用于模型训练、微调与数据分析。"],
+["Recall","召回率","data","Of actual, how many found.","ˈriˌkɔl","数据与训练：召回率（Recall），用于模型训练、微调与数据分析。"],
+["F1 Score","F1 分数","data","Balance precision and recall.","f1* skɔr","数据与训练：F1 分数（F1 Score），用于模型训练、微调与数据分析。"],
+["Confusion Matrix","混淆矩阵","data","Breakdown of predictions.","kənfˈjuʒən ˈmeɪtrɪks","数据与训练：混淆矩阵（Confusion Matrix），用于模型训练、微调与数据分析。"],
+["ROC","ROC 曲线","data","Trade-off chart.","rɑk","数据与训练：ROC 曲线（ROC），用于模型训练、微调与数据分析。"],
+["AUC","曲线下面积","data","Single score for ROC.","auc*","数据与训练：曲线下面积（AUC），用于模型训练、微调与数据分析。"],
+["Bias-Variance","偏差方差","data","Core learning trade-off.","bias-variance*","数据与训练：偏差方差（Bias-Variance），用于模型训练、微调与数据分析。"],
+["Curse of Dimensionality","维数灾难","data","Harder in high dimensions.","kərs əv dɪˌmɛnʃəˈnæləti","数据与训练：维数灾难（Curse of Dimensionality），用于模型训练、微调与数据分析。"],
+["Outlier","离群点","data","Unusual data point.","ˈaʊtlaɪər","数据与训练：离群点（Outlier），用于模型训练、微调与数据分析。"],
+["Imbalance","数据不平衡","data","Unequal class sizes.","ɪmˈbæləns","数据与训练：数据不平衡（Imbalance），用于模型训练、微调与数据分析。"],
+["Sampling","采样","data","Pick a subset.","ˈsæmplɪŋ","数据与训练：采样（Sampling），用于模型训练、微调与数据分析。"],
+["Shuffle","打乱","data","Randomize order.","ˈʃəfəl","数据与训练：打乱（Shuffle），用于模型训练、微调与数据分析。"],
+["Split","划分","data","Train/val/test divide.","splɪt","数据与训练：划分（Split），用于模型训练、微调与数据分析。"],
+["Feature Extraction","特征提取","data","Pull useful signals.","ˈfiʧər ɛkˈstrækʃən","数据与训练：特征提取（Feature Extraction），用于模型训练、微调与数据分析。"],
+["Dimensionality Reduction","降维","data","Fewer features.","dɪˌmɛnʃəˈnæləti rɪˈdəkʃən","数据与训练：降维（Dimensionality Reduction），用于模型训练、微调与数据分析。"],
+["PCA","主成分分析","data","Classic reduction method.","pca*","数据与训练：主成分分析（PCA），用于模型训练、微调与数据分析。"],
+["Clustering","聚类","data","Group similar items.","ˈkləstərɪŋ","数据与训练：聚类（Clustering），用于模型训练、微调与数据分析。"],
+["Classification","分类","data","Predict a category.","ˌklæsəfəˈkeɪʃən","数据与训练：分类（Classification），用于模型训练、微调与数据分析。"],
+["Regression","回归","data","Predict a number.","rəˈgrɛʃən","数据与训练：回归（Regression），用于模型训练、微调与数据分析。"],
+["Search","搜索","app","Find info fast.","sərʧ","应用场景：搜索（Search），指 AI 在具体产品里的落地用法。"],
+["Recommendation","推荐","app","Suggest what you like.","ˌrɛkəmənˈdeɪʃən","应用场景：推荐（Recommendation），指 AI 在具体产品里的落地用法。"],
+["Recommendation System","推荐系统","app","Powers feeds and shops.","ˌrɛkəmənˈdeɪʃən ˈsɪstəm","应用场景：推荐系统（Recommendation System），指 AI 在具体产品里的落地用法。"],
+["Personalization","个性化","app","Tailored to you.","ˌpərsənələˈzeɪʃən","应用场景：个性化（Personalization），指 AI 在具体产品里的落地用法。"],
+["Content Creation","内容创作","app","Make posts and videos.","ˈkɑntɛnt kriˈeɪʃən","应用场景：内容创作（Content Creation），指 AI 在具体产品里的落地用法。"],
+["Copywriting","文案写作","app","Write selling text.","copywriting*","应用场景：文案写作（Copywriting），指 AI 在具体产品里的落地用法。"],
+["Marketing","营销","app","Promote products.","ˈmɑrkətɪŋ","应用场景：营销（Marketing），指 AI 在具体产品里的落地用法。"],
+["SEO","搜索引擎优化","app","Rank higher in search.","ˈsioʊ","应用场景：搜索引擎优化（SEO），指 AI 在具体产品里的落地用法。"],
+["Social Media","社交媒体","app","Platforms like X or IG.","ˈsoʊʃəl ˈmidiə","应用场景：社交媒体（Social Media），指 AI 在具体产品里的落地用法。"],
+["Customer Service","客服","app","Auto-reply to users.","ˈkəstəmər ˈsərvɪs","应用场景：客服（Customer Service），指 AI 在具体产品里的落地用法。"],
+["Virtual Assistant","虚拟助手","app","Helps schedule and answer.","ˈvərʧuəl əˈsɪstənt","应用场景：虚拟助手（Virtual Assistant），指 AI 在具体产品里的落地用法。"],
+["Translation App","翻译应用","app","Live language help.","trænzˈleɪʃən æp","应用场景：翻译应用（Translation App），指 AI 在具体产品里的落地用法。"],
+["Education","教育","app","Personal tutoring.","ˌɛʤəˈkeɪʃən","应用场景：教育（Education），指 AI 在具体产品里的落地用法。"],
+["Tutoring","辅导","app","One-on-one help.","ˈtutərɪŋ","应用场景：辅导（Tutoring），指 AI 在具体产品里的落地用法。"],
+["Healthcare","医疗健康","app","Diagnosis support.","ˈhɛlθˌkɛr","应用场景：医疗健康（Healthcare），指 AI 在具体产品里的落地用法。"],
+["Diagnosis","诊断","app","Spot disease signs.","ˌdaɪəgˈnoʊsəs","应用场景：诊断（Diagnosis），指 AI 在具体产品里的落地用法。"],
+["Finance","金融","app","Markets and advice.","ˈfaɪˌnæns","应用场景：金融（Finance），指 AI 在具体产品里的落地用法。"],
+["Fraud Detection","欺诈检测","app","Catch bad transactions.","frɔd dɪˈtɛkʃən","应用场景：欺诈检测（Fraud Detection），指 AI 在具体产品里的落地用法。"],
+["Legal","法律","app","Review contracts.","ˈligəl","应用场景：法律（Legal），指 AI 在具体产品里的落地用法。"],
+["Coding Assistant","编程助手","app","Write and fix code.","ˈkoʊdɪŋ əˈsɪstənt","应用场景：编程助手（Coding Assistant），指 AI 在具体产品里的落地用法。"],
+["Code Review","代码审查","app","Check code quality.","koʊd ˌrivˈju","应用场景：代码审查（Code Review），指 AI 在具体产品里的落地用法。"],
+["Bug Fix","缺陷修复","app","Resolve errors.","bəg fɪks","应用场景：缺陷修复（Bug Fix），指 AI 在具体产品里的落地用法。"],
+["Data Analysis","数据分析","app","Insight from numbers.","ˈdætə æˈnælɪsɪs","应用场景：数据分析（Data Analysis），指 AI 在具体产品里的落地用法。"],
+["Visualization","可视化","app","Charts and graphs.","ˌvɪʒwələˈzeɪʃən","应用场景：可视化（Visualization），指 AI 在具体产品里的落地用法。"],
+["Report","报告","app","Summarize findings.","rɪˈpɔrt","应用场景：报告（Report），指 AI 在具体产品里的落地用法。"],
+["Summarizer","摘要器","app","Shorten long docs.","summarizer*","应用场景：摘要器（Summarizer），指 AI 在具体产品里的落地用法。"],
+["Translator","翻译器","app","Convert languages.","trænzˈleɪtər","应用场景：翻译器（Translator），指 AI 在具体产品里的落地用法。"],
+["Image Editor","图像编辑器","app","Touch up photos.","ˈɪmɪʤ ˈɛdɪtər","应用场景：图像编辑器（Image Editor），指 AI 在具体产品里的落地用法。"],
+["Video Editor","视频编辑器","app","Cut and trim clips.","ˈvɪdioʊ ˈɛdɪtər","应用场景：视频编辑器（Video Editor），指 AI 在具体产品里的落地用法。"],
+["Design Tool","设计工具","app","Make visuals.","dɪˈzaɪn tul","应用场景：设计工具（Design Tool），指 AI 在具体产品里的落地用法。"],
+["Productivity","生产力","app","Get more done.","ˌproʊdəkˈtɪvɪti","应用场景：生产力（Productivity），指 AI 在具体产品里的落地用法。"],
+["Note-taking","笔记","app","Capture ideas.","note-taking*","应用场景：笔记（Note-taking），指 AI 在具体产品里的落地用法。"],
+["Meeting Summary","会议摘要","app","Recap what was said.","ˈmitɪŋ ˈsəməri","应用场景：会议摘要（Meeting Summary），指 AI 在具体产品里的落地用法。"],
+["Email Draft","邮件起草","app","Write emails fast.","iˈmeɪl dræft","应用场景：邮件起草（Email Draft），指 AI 在具体产品里的落地用法。"],
+["Resume","简历","app","Build a CV.","ˈrɛzəˌmeɪ","应用场景：简历（Resume），指 AI 在具体产品里的落地用法。"],
+["Research","研究","app","Dig through papers.","ˈrisərʧ","应用场景：研究（Research），指 AI 在具体产品里的落地用法。"],
+["Knowledge Management","知识管理","app","Organize what you know.","ˈnɑlɪʤ ˈmænɪʤmənt","应用场景：知识管理（Knowledge Management），指 AI 在具体产品里的落地用法。"],
+["Sentiment Analysis","情感分析","app","Detect mood in text.","ˈsɛnəmənt æˈnælɪsɪs","应用场景：情感分析（Sentiment Analysis），指 AI 在具体产品里的落地用法。"],
+["Text Classification","文本分类","app","Sort text by topic.","tɛkst ˌklæsəfəˈkeɪʃən","应用场景：文本分类（Text Classification），指 AI 在具体产品里的落地用法。"],
+["Named Entity","命名实体","app","Find names and places.","neɪmd ˈɛntɪti","应用场景：命名实体（Named Entity），指 AI 在具体产品里的落地用法。"],
+["OCR","光学字符识别","app","Read text from images.","ˌoʊ siː ˈɑːr","应用场景：光学字符识别（OCR），指 AI 在具体产品里的落地用法。"],
+["Speech","语音","app","Spoken language AI.","spiʧ","应用场景：语音（Speech），指 AI 在具体产品里的落地用法。"],
+["Accessibility","无障碍","app","Help users with disabilities.","ˌæksɛsəˈbɪlɪti","应用场景：无障碍（Accessibility），指 AI 在具体产品里的落地用法。"],
+["Gaming","游戏","app","Smarter NPCs.","ˈgeɪmɪŋ","应用场景：游戏（Gaming），指 AI 在具体产品里的落地用法。"],
+["E-commerce","电商","app","Smarter shopping.","e-commerce*","应用场景：电商（E-commerce），指 AI 在具体产品里的落地用法。"],
+["Recruitment","招聘","app","Screen candidates.","rɪˈkrutmənt","应用场景：招聘（Recruitment），指 AI 在具体产品里的落地用法。"],
+["Weather","天气","app","Forecast with AI.","ˈwɛðər","应用场景：天气（Weather），指 AI 在具体产品里的落地用法。"],
+["Navigation","导航","app","Route optimization.","ˌnævəˈgeɪʃən","应用场景：导航（Navigation），指 AI 在具体产品里的落地用法。"],
+["Robotics","机器人","app","Physical AI.","ˌroʊˈbɑtɪks","应用场景：机器人（Robotics），指 AI 在具体产品里的落地用法。"],
+["Ethics","伦理","ethics","Right and wrong in AI.","ˈɛθɪks","安全与伦理：伦理（Ethics），帮助你合规、安全地使用 AI。"],
+["Bias","偏见","ethics","Unfair skew in outputs.","baɪəs","安全与伦理：偏见（Bias），帮助你合规、安全地使用 AI。"],
+["Fairness","公平性","ethics","Equal treatment.","ˈfɛrnəs","安全与伦理：公平性（Fairness），帮助你合规、安全地使用 AI。"],
+["Discrimination","歧视","ethics","Harmful exclusion.","dɪˌskrɪməˈneɪʃən","安全与伦理：歧视（Discrimination），帮助你合规、安全地使用 AI。"],
+["Transparency","透明度","ethics","Be open about how it works.","trænˈspɛrənsi","安全与伦理：透明度（Transparency），帮助你合规、安全地使用 AI。"],
+["Explainability","可解释性","ethics","Why a model decided.","explainability*","安全与伦理：可解释性（Explainability），帮助你合规、安全地使用 AI。"],
+["Interpretability","可解释性","ethics","Understand the model.","interpretability*","安全与伦理：可解释性（Interpretability），帮助你合规、安全地使用 AI。"],
+["Accountability","问责制","ethics","Who is responsible.","əˈkaʊntəˌbɪlɪti","安全与伦理：问责制（Accountability），帮助你合规、安全地使用 AI。"],
+["Privacy","隐私","ethics","Protect personal data.","ˈpraɪvəsi","安全与伦理：隐私（Privacy），帮助你合规、安全地使用 AI。"],
+["Data Protection","数据保护","ethics","Keep data safe.","ˈdætə prəˈtɛkʃən","安全与伦理：数据保护（Data Protection），帮助你合规、安全地使用 AI。"],
+["Consent","同意","ethics","Permission to use data.","kənˈsɛnt","安全与伦理：同意（Consent），帮助你合规、安全地使用 AI。"],
+["Security","安全","ethics","Block attacks.","sɪˈkjʊrəti","安全与伦理：安全（Security），帮助你合规、安全地使用 AI。"],
+["Safety","安全性","ethics","Avoid harm.","ˈseɪfti","安全与伦理：安全性（Safety），帮助你合规、安全地使用 AI。"],
+["Robustness","鲁棒性","ethics","Works under pressure.","roʊˈbəstnəs","安全与伦理：鲁棒性（Robustness），帮助你合规、安全地使用 AI。"],
+["Adversarial","对抗的","ethics","Deliberate attacks.","ˌædvərˈsɛriəl","安全与伦理：对抗的（Adversarial），帮助你合规、安全地使用 AI。"],
+["Adversarial Attack","对抗攻击","ethics","Fool a model on purpose.","ˌædvərˈsɛriəl əˈtæk","安全与伦理：对抗攻击（Adversarial Attack），帮助你合规、安全地使用 AI。"],
+["Poisoning","数据投毒","ethics","Corrupt training data.","ˈpɔɪzənɪŋ","安全与伦理：数据投毒（Poisoning），帮助你合规、安全地使用 AI。"],
+["Misinformation","虚假信息","ethics","False content spread.","ˌmɪsɪnfərˈmeɪʃən","安全与伦理：虚假信息（Misinformation），帮助你合规、安全地使用 AI。"],
+["Deepfake","深度伪造","ethics","Fake but real-looking media.","deepfake*","安全与伦理：深度伪造（Deepfake），帮助你合规、安全地使用 AI。"],
+["Synthetic Media","合成媒体","ethics","AI-made audio or video.","sɪnˈθɛtɪk ˈmidiə","安全与伦理：合成媒体（Synthetic Media），帮助你合规、安全地使用 AI。"],
+["Copyright","版权","ethics","Who owns AI output.","ˈkɑpiˌraɪt","安全与伦理：版权（Copyright），帮助你合规、安全地使用 AI。"],
+["Intellectual Property","知识产权","ethics","Legal rights to content.","ˌɪnəˈlɛkʧuəl ˈprɑpərti","安全与伦理：知识产权（Intellectual Property），帮助你合规、安全地使用 AI。"],
+["Plagiarism","抄袭","ethics","Passing off others work.","ˈpleɪʤərˌɪzəm","安全与伦理：抄袭（Plagiarism），帮助你合规、安全地使用 AI。"],
+["Disclosure","披露","ethics","Say when AI is used.","dɪˈskloʊʒər","安全与伦理：披露（Disclosure），帮助你合规、安全地使用 AI。"],
+["Watermarking","水印技术","ethics","Mark AI content.","watermarking*","安全与伦理：水印技术（Watermarking），帮助你合规、安全地使用 AI。"],
+["AI Policy","AI 政策","ethics","Rules from government.","eɪaɪ ˈpɑləsi","安全与伦理：AI 政策（AI Policy），帮助你合规、安全地使用 AI。"],
+["Regulation","监管","ethics","Laws for AI.","ˌrɛgjəˈleɪʃən","安全与伦理：监管（Regulation），帮助你合规、安全地使用 AI。"],
+["Governance","治理","ethics","Oversee AI use.","ˈgəvərnəns","安全与伦理：治理（Governance），帮助你合规、安全地使用 AI。"],
+["Responsible AI","负责任的人工智能","ethics","Build AI for good.","riˈspɑnsəbəl eɪaɪ","安全与伦理：负责任的人工智能（Responsible AI），帮助你合规、安全地使用 AI。"],
+["Red Team","红队","ethics","Try to break the system.","rɛd tim","安全与伦理：红队（Red Team），帮助你合规、安全地使用 AI。"],
+["Blue Team","蓝队","ethics","Defend the system.","blu tim","安全与伦理：蓝队（Blue Team），帮助你合规、安全地使用 AI。"],
+["Audit","审计","ethics","Check for compliance.","ˈɔdɪt","安全与伦理：审计（Audit），帮助你合规、安全地使用 AI。"],
+["Risk","风险","ethics","Chance of harm.","rɪsk","安全与伦理：风险（Risk），帮助你合规、安全地使用 AI。"],
+["Harm","危害","ethics","Damage to people.","hɑrm","安全与伦理：危害（Harm），帮助你合规、安全地使用 AI。"],
+["Human Oversight","人类监督","ethics","People stay in control.","ˈjumən ˈoʊvərˌsaɪt","安全与伦理：人类监督（Human Oversight），帮助你合规、安全地使用 AI。"],
+["Kill Switch","紧急停止","ethics","Stop a runaway system.","kɪl swɪʧ","安全与伦理：紧急停止（Kill Switch），帮助你合规、安全地使用 AI。"],
+["Dual Use","双重用途","ethics","Good and bad applications.","duəl juz","安全与伦理：双重用途（Dual Use），帮助你合规、安全地使用 AI。"],
+["Bias Mitigation","偏见缓解","ethics","Reduce unfairness.","baɪəs ˌmɪtɪˈgeɪʃən","安全与伦理：偏见缓解（Bias Mitigation），帮助你合规、安全地使用 AI。"],
+["Value Alignment","价值对齐","ethics","Match human values.","ˈvælju əˈlaɪnmənt","安全与伦理：价值对齐（Value Alignment），帮助你合规、安全地使用 AI。"],
+["Transparency Report","透明度报告","ethics","Publish AI impacts.","trænˈspɛrənsi rɪˈpɔrt","安全与伦理：透明度报告（Transparency Report），帮助你合规、安全地使用 AI。"],
+["Data Minimization","数据最小化","ethics","Collect only what is needed.","ˈdætə minimization*","安全与伦理：数据最小化（Data Minimization），帮助你合规、安全地使用 AI。"],
+["Anonymization","匿名化","ethics","Hide identities.","anonymization*","安全与伦理：匿名化（Anonymization），帮助你合规、安全地使用 AI。"],
+["Consent Management","同意管理","ethics","Track permissions.","kənˈsɛnt ˈmænɪʤmənt","安全与伦理：同意管理（Consent Management），帮助你合规、安全地使用 AI。"],
+["Ethical Review","伦理审查","ethics","Approve before launch.","ˈɛθɪkəl ˌrivˈju","安全与伦理：伦理审查（Ethical Review），帮助你合规、安全地使用 AI。"],
+["Sustainability","可持续性","ethics","Lower energy use.","səˌsteɪnəˈbɪlɪti","安全与伦理：可持续性（Sustainability），帮助你合规、安全地使用 AI。"],
+];
+
+// ---------- 状态 ----------
+const LS_KEY = 'xy_vocab_learned_v2';
+let learned = new Set();
+let sessionQueue = [];
+let sessionPos = 0;
+let curIndex = -1;
+let returnTo = 'home';
+let listType = 'done';
+
+function loadLocal(){
+  try{
+    const o = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    learned = new Set(o.learned || []);
+  }catch(e){ learned = new Set(); }
+}
+function saveLocal(){
+  localStorage.setItem(LS_KEY, JSON.stringify({learned:[...learned]}));
+}
+function syncParent(studied){
+  try{
+    parent.postMessage({ type:'vocab-sync', learned:[...learned], wrong:[], total: VOCAB.length }, '*');
+    if(studied){
+      const d = new Date();
+      const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      parent.postMessage({ type:'vocab-study', date: ds }, '*');
+    }
+  }catch(e){}
+}
+function speak(){
+  if(!('speechSynthesis' in window) || curIndex < 0) return;
+  const u = new SpeechSynthesisUtterance(VOCAB[curIndex][0]);
+  u.lang = 'en-US'; u.rate = 0.92;
+  window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+}
+
+// ---------- 视图切换 ----------
+function showView(name){
+  ['home','learn','complete','list'].forEach(v=>{
+    document.getElementById(v).classList.toggle('active', v===name);
+  });
+  if(name==='home') refreshHome();
+}
+
+function refreshHome(){
+  const total = VOCAB.length;
+  const done = learned.size;
+  const todo = total - done;
+  document.getElementById('hDone').textContent = done;
+  document.getElementById('hDone2').textContent = done;
+  document.getElementById('hTodo').textContent = todo;
+  document.getElementById('hTotal').textContent = total;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('hFill').style.width = pct + '%';
+  document.getElementById('hPct').textContent = pct + '%';
+}
+
+// ---------- 主页 → 学习 ----------
+function startLearn(){
+  const unlearned = [];
+  VOCAB.forEach((v,i)=>{ if(!learned.has(i)) unlearned.push(i); });
+  sessionQueue = unlearned.length ? unlearned : VOCAB.map((_,i)=>i);
+  sessionPos = 0;
+  returnTo = 'home';
+  showView('learn');
+  renderLearn();
+}
+
+function renderLearn(){
+  if(sessionPos >= sessionQueue.length){ showComplete(); return; }
+  const i = sessionQueue[sessionPos];
+  curIndex = i;
+  const v = VOCAB[i];
+  const cat = CATS[v[2]];
+  document.getElementById('lCat').textContent = cat.emoji + ' ' + cat.label;
+  document.getElementById('lImg').src = cat.img;
+  document.getElementById('lEmoji').textContent = cat.emoji;
+  document.getElementById('lWord').textContent = v[0];
+  document.getElementById('lPhon').textContent = v[4] ? '/' + v[4] + '/' : '';
+  document.getElementById('lZh').textContent = v[1];
+  document.getElementById('lUse').textContent = v[5] || '';
+  document.getElementById('lEx').textContent = '📌 ' + v[3];
+  document.getElementById('flip').classList.remove('flipped');
+  document.getElementById('lCount').textContent = '第 ' + (sessionPos+1) + ' / ' + sessionQueue.length + ' 个';
+  document.getElementById('lFill').style.width = (sessionPos / sessionQueue.length * 100) + '%';
+}
+
+function flipCard(){ document.getElementById('flip').classList.toggle('flipped'); }
+
+function markLearn(isDone){
+  if(curIndex < 0) return;
+  if(isDone) learned.add(curIndex); else learned.delete(curIndex);
+  saveLocal();
+  syncParent(isDone);
+  sessionPos++;
+  renderLearn();
+}
+
+function showComplete(){
+  const total = VOCAB.length;
+  const done = learned.size;
+  document.getElementById('cText').textContent =
+    '已完成 ' + done + ' / ' + total + ' 个单词' + (done===total ? '，全部搞定啦！🏆' : '，继续冲刺下一轮～');
+  showView('complete');
+}
+
+function goBack(){
+  if(returnTo==='list') showList(listType);
+  else showView('home');
+}
+function finishBack(){
+  if(returnTo==='list') showList(listType);
+  else showView('home');
+}
+
+// ---------- 列表（已完成 / 未完成） ----------
+function showList(type){
+  listType = type;
+  const arr = [];
+  VOCAB.forEach((v,i)=>{
+    const d = learned.has(i);
+    if(type==='done' && d) arr.push(i);
+    if(type==='todo' && !d) arr.push(i);
+  });
+  document.getElementById('lTitle').textContent =
+    (type==='done' ? '已完成单词' : '未完成单词') + '（' + arr.length + '）';
+  const box = document.getElementById('lBox');
+  if(!arr.length){
+    box.innerHTML = '<div class="empty">' +
+      (type==='done' ? '还没有已学会的单词，去「开始学习」吧 🌟' : '太棒了，所有单词都学完啦 🎉') +
+      '</div>';
+    showView('list');
+    return;
+  }
+  box.innerHTML = arr.map(i=>{
+    const v = VOCAB[i];
+    const d = learned.has(i);
+    return '<div class="listitem '+(d?'done':'')+'" onclick="openWord('+i+')">'+
+      '<div class="en">'+v[0]+'<span class="ph">'+(v[4]?' /'+v[4]+'/':'')+'</span></div><div class="zh">'+v[1]+'</div>'+
+      '<div class="st">'+(d?'✓':'○')+'</div></div>';
+  }).join('');
+  showView('list');
+}
+
+function openWord(i){
+  sessionQueue = [i];
+  sessionPos = 0;
+  returnTo = 'list';
+  showView('learn');
+  renderLearn();
+}
+
+// ---------- 启动 + 云同步 ----------
+loadLocal();
+refreshHome();
+syncParent(false);
+try{ parent.postMessage({ type:'vocab-request' }, '*'); }catch(e){}
+window.addEventListener('message', function(e){
+  const d = e.data; if(!d) return;
+  if(d.type === 'vocab-load'){
+    const before = learned.size;
+    (d.learned || []).forEach(x=>learned.add(x));
+    saveLocal();
+    if(learned.size !== before){ refreshHome(); }
+    syncParent(false);
+  }
+});
+</script>
+</body>
+</html>
